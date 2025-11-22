@@ -186,7 +186,7 @@ public class ModuleCollection : IEnumerable<Module>
     /// </summary>
     public void Remove(string name)
     {
-        if (modules.Where(m => m.Name == name).FirstOrDefault() is Module m)
+        if (modules.FirstOrDefault(m => m.Name == name) is Module m)
         {
             Remove(m);
         }

@@ -2,6 +2,9 @@
 
 namespace ItemChanger.Enums;
 
+/// <summary>
+/// Flag enum describing the states a placement has reached during gameplay.
+/// </summary>
 [Flags]
 public enum VisitState
 {

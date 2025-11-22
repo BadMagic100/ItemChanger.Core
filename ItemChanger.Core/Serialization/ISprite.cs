@@ -62,7 +62,7 @@ public class EmptySprite : ISprite
 }
 
 /// <summary>
-/// A sprite that can be changed based on an <see cref="IBool"/>
+/// Sprite implementation that selects between two sprites based on a test.
 /// </summary>
 public class DualSprite(IBool test, ISprite trueSprite, ISprite falseSprite) : ISprite
 {

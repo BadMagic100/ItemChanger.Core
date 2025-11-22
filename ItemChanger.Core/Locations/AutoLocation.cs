@@ -36,6 +36,17 @@ public abstract class AutoLocation : Location
         Placement!.GiveAll(GetGiveInfo());
     }
 
+    /// <summary>
+    /// Gives all items, invoking a callback after completion.
+    /// </summary>
+    public void GiveAll(Action callback)
+    {
+        Placement!.GiveAll(GetGiveInfo(), callback);
+    }
+
+    /// <summary>
+    /// Produces an asynchronous wrapper that gives all items after the provided callback completes.
+    /// </summary>
     public Action<Action> GiveAllAsync(Transform t)
     {
         GiveInfo gi = GetGiveInfo();
@@ -43,11 +54,9 @@ public abstract class AutoLocation : Location
         return (callback) => Placement!.GiveAll(gi, callback);
     }
 
-    public void GiveAll(Action callback)
-    {
-        Placement!.GiveAll(GetGiveInfo(), callback);
-    }
-
+    /// <summary>
+    /// Indicates whether this auto location can handle costs directly.
+    /// </summary>
     [JsonIgnore]
     public virtual bool SupportsCost => false;
 

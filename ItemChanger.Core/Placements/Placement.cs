@@ -106,7 +106,7 @@ public abstract class Placement(string name) : TaggableObject
         IEnumerable<string> itemNames = Items
             .Where(i => !i.IsObtained())
             .Select(i => i.GetPreviewName(this) ?? "Unknown Item");
-        string itemText = string.Join(", ", [.. itemNames]);
+        string itemText = string.Join(", ", itemNames);
         if (itemText.Length > maxLength)
         {
             itemText = itemText[..(maxLength > 3 ? maxLength - 3 : 0)] + "...";

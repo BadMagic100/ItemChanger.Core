@@ -3,11 +3,12 @@
 namespace ItemChanger.Enums;
 
 /// <summary>
-/// Enum which provides additional information for serialization and other tag handling purposes.
+/// Enum which provides additional options for serialization and other tag handling purposes.
 /// </summary>
 [Flags]
 public enum TagHandlingFlags
 {
+    /// <summary>No options.</summary>
     None = 0,
 
     /// <summary>

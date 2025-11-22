@@ -34,7 +34,11 @@ public class ReadOnlyGiveEventArgs(
 
     /// <summary>Transform controlling pickup placement.</summary>
     public Transform? Transform => info.Transform;
+
+    /// <summary>UI message types permitted for showing the item.</summary>
     public MessageType MessageType => info.MessageType;
+
+    /// <summary>Callback invoked after the UI message completes.</summary>
     public Action<Item>? Callback => info.Callback;
 
     /// <summary>Previous obtain state of the item before the give occurred.</summary>

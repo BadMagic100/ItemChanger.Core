@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ItemChanger.Modules;
 
@@ -15,7 +16,7 @@ public interface IInteropModule
     /// <summary>
     /// Returns true if the property name corresponds to a non-null value of the specified type, and outputs the casted value.
     /// </summary>
-    bool TryGetProperty<T>(string propertyName, out T? value);
+    bool TryGetProperty<T>(string propertyName, [NotNullWhen(true)] out T? value);
 }
 
 /// <summary>
@@ -31,7 +32,8 @@ public class InteropModule : Module, IInteropModule
     /// </summary>
     public Dictionary<string, object?> Properties { get; set; } = new();
 
-    public bool TryGetProperty<T>(string propertyName, out T? value)
+    /// <inheritdoc/>
+    public bool TryGetProperty<T>(string propertyName, [NotNullWhen(true)] out T? value)
     {
         if (
             propertyName == null

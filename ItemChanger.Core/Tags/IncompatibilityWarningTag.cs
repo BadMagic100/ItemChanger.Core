@@ -30,7 +30,7 @@ public class IncompatibilityWarningTag : Tag
         if (
             ItemChangerHost.Singleton.ActiveProfile!.TryGetPlacement(
                 IncompatiblePlacementName,
-                out Placement? p
+                out _
             )
         )
         {

@@ -8,6 +8,7 @@ namespace ItemChanger.Enums;
 [Flags]
 public enum ModuleHandlingFlags
 {
+    /// <summary>No flags.</summary>
     None = 0,
 
     /// <summary>

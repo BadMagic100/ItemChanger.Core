@@ -10,6 +10,9 @@ namespace ItemChanger.Locations;
 /// </summary>
 public class StartLocation : AutoLocation
 {
+    /// <summary>
+    /// Message type to use when presenting the granted item.
+    /// </summary>
     public MessageType MessageType { get; init; }
 
     /// <inheritdoc/>

@@ -27,6 +27,27 @@
     <!-- CSharpier.MsBuild automatically formats code during Debug builds. Run 'dotnet build' to format all files. -->
     <PackageReference Include="CSharpier.MsBuild" Version="1.1.2" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PolySharpInclude Include="System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.RequiredMemberAttribute" />
+    <PolySharpInclude Include="System.Diagnostics.CodeAnalysis.MemberNotNullAttribute" />
+    <PolySharpInclude Include="System.Diagnostics.CodeAnalysis.NotNullWhenAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.IsExternalInit" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PolySharpInclude Include="System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.RequiredMemberAttribute" />
+    <PolySharpInclude Include="System.Diagnostics.CodeAnalysis.MemberNotNullAttribute" />
+    <PolySharpInclude Include="System.Diagnostics.CodeAnalysis.NotNullWhenAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.IsExternalInit" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PolySharpInclude Include="System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute" />
+    <PolySharpInclude Include="System.Runtime.CompilerServices.RequiredMemberAttribute" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="../README.md" Pack="True" PackagePath="README.md" />
   </ItemGroup>

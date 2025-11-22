@@ -103,16 +103,15 @@ public static class Extensions
 
         for (int i = 1; i < uiname.Length; i++)
         {
-            if (char.IsUpper(uiname[i]))
+            if (
+                char.IsUpper(uiname[i])
+                && (
+                    char.IsLower(uiname[i - 1])
+                    || (i + 1 < uiname.Length && char.IsLower(uiname[i + 1]))
+                )
+            )
             {
-                if (char.IsLower(uiname[i - 1]))
-                {
-                    uiname.Insert(i++, " ");
-                }
-                else if (i + 1 < uiname.Length && char.IsLower(uiname[i + 1]))
-                {
-                    uiname.Insert(i++, " ");
-                }
+                uiname.Insert(i++, " ");
             }
 
             if (

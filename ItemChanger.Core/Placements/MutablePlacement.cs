@@ -105,103 +105,185 @@ public class MutablePlacement(string Name)
         where T : Placement, ISingleCostPlacement
     {
         ContainerRegistry reg = ItemChangerHost.Singleton.ContainerRegistry;
-        if (location?.ForceDefaultContainer ?? true)
+        if (ShouldUseDefaultContainer(location))
         {
-            return ItemChangerHost.Singleton.ContainerRegistry.DefaultSingleItemContainer.Name;
+            return reg.DefaultSingleItemContainer.Name;
         }
 
+        ContainerLocation targetLocation = location!;
+        uint requestedCapabilities = DetermineRequestedCapabilities(placement);
+        HashSet<string> unsupported = BuildUnsupportedSet(placement);
+        OriginalContainerTag? originalContainerTag = placement
+            .GetPlacementAndLocationTags()
+            .OfType<OriginalContainerTag>()
+            .FirstOrDefault();
+
+        if (
+            TryUsePrioritizedOriginalContainer(
+                placement,
+                originalContainerTag,
+                requestedCapabilities,
+                unsupported,
+                reg,
+                out string prioritizedContainer
+            )
+        )
+        {
+            return prioritizedContainer;
+        }
+
+        string? containerType = FindPreferredContainer(
+            targetLocation,
+            items,
+            unsupported,
+            requestedCapabilities,
+            reg
+        );
+
+        if (!string.IsNullOrEmpty(containerType))
+        {
+            return containerType!;
+        }
+
+        return DetermineFallbackContainer(
+            originalContainerTag,
+            items,
+            unsupported,
+            requestedCapabilities,
+            reg
+        );
+    }
+
+    private static bool ShouldUseDefaultContainer(ContainerLocation? location) =>
+        location?.ForceDefaultContainer ?? true;
+
+    private static uint DetermineRequestedCapabilities<T>(T placement)
+        where T : Placement, ISingleCostPlacement
+    {
         uint requestedCapabilities = placement
             .GetPlacementAndLocationTags()
             .OfType<INeedsContainerCapability>()
             .Select(x => x.RequestedCapabilities)
             .Aggregate(0u, (acc, next) => acc | next);
+
         if (placement.Cost != null)
         {
             requestedCapabilities |= ContainerCapabilities.PayCosts;
         }
 
-        HashSet<string> unsupported =
+        return requestedCapabilities;
+    }
+
+    private static HashSet<string> BuildUnsupportedSet<T>(T placement)
+        where T : Placement
+    {
+        return
         [
             .. placement
                 .GetPlacementAndLocationTags()
                 .OfType<UnsupportedContainerTag>()
                 .Select(t => t.ContainerType),
         ];
+    }
 
-        OriginalContainerTag? originalContainerTag = placement
-            .GetPlacementAndLocationTags()
-            .OfType<OriginalContainerTag>()
-            .FirstOrDefault();
-
-        // if original container has priority over item preferences, determine whether it is meets the location's needs and force as needed
+    private static bool TryUsePrioritizedOriginalContainer<T>(
+        T placement,
+        OriginalContainerTag? originalContainerTag,
+        uint requestedCapabilities,
+        HashSet<string> unsupported,
+        ContainerRegistry registry,
+        out string containerType
+    )
+        where T : Placement
+    {
+        containerType = ContainerRegistry.UnknownContainerType;
         if (
-            originalContainerTag != null
-            && (originalContainerTag.Force || originalContainerTag.Priority)
+            originalContainerTag == null
+            || !(originalContainerTag.Force || originalContainerTag.Priority)
         )
         {
-            Container? originalContainer = ItemChangerHost.Singleton.ContainerRegistry.GetContainer(
-                originalContainerTag.ContainerType
-            );
-            if (originalContainer != null)
-            {
-                if (
-                    !unsupported.Contains(originalContainerTag.ContainerType)
-                    && originalContainer.SupportsAll(false, requestedCapabilities)
-                )
-                {
-                    return originalContainerTag.ContainerType;
-                }
-                else if (originalContainerTag.Force)
-                {
-                    LoggerProxy.LogWarn(
-                        $"During container selection for {placement.Name}, the container "
-                            + $"{originalContainer.Name} was forced despite being unsupported by the location or missing "
-                            + $"necessary capabilities."
-                    );
-                    return originalContainerTag.ContainerType;
-                }
-            }
+            return false;
         }
 
-        // original container was not prioritized, try item preferences first
-        string? containerType = items
+        Container? originalContainer = registry.GetContainer(originalContainerTag.ContainerType);
+        if (originalContainer == null)
+        {
+            return false;
+        }
+
+        bool supported =
+            !unsupported.Contains(originalContainerTag.ContainerType)
+            && originalContainer.SupportsAll(false, requestedCapabilities);
+        if (supported)
+        {
+            containerType = originalContainerTag.ContainerType;
+            return true;
+        }
+
+        if (originalContainerTag.Force)
+        {
+            LoggerProxy.LogWarn(
+                $"During container selection for {placement.Name}, the container "
+                    + $"{originalContainer.Name} was forced despite being unsupported by the location or missing "
+                    + $"necessary capabilities."
+            );
+            containerType = originalContainerTag.ContainerType;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static string? FindPreferredContainer(
+        ContainerLocation location,
+        IEnumerable<Item> items,
+        HashSet<string> unsupported,
+        uint requestedCapabilities,
+        ContainerRegistry registry
+    )
+    {
+        return items
             .Select(i => i.GetPreferredContainer())
             .FirstOrDefault(c =>
                 location.Supports(c)
                 && !unsupported.Contains(c)
-                && reg.GetContainer(c)?.SupportsAll(true, requestedCapabilities) == true
+                && registry.GetContainer(c)?.SupportsAll(true, requestedCapabilities) == true
             );
-
-        if (string.IsNullOrEmpty(containerType))
-        {
-            if (
-                originalContainerTag != null
-                && reg.GetContainer(originalContainerTag.ContainerType)
-                    ?.SupportsAll(true, requestedCapabilities) == true
-            )
-            {
-                containerType = originalContainerTag.ContainerType;
-            }
-            // has more than 1 item and can support the default multi item container
-            else if (
-                items.Skip(1).Any()
-                && !unsupported.Contains(
-                    ItemChangerHost.Singleton.ContainerRegistry.DefaultMultiItemContainer.Name
-                )
-                && reg.DefaultMultiItemContainer.SupportsAll(true, requestedCapabilities)
-            )
-            {
-                containerType = reg.DefaultMultiItemContainer.Name;
-            }
-            else
-            {
-                containerType = reg.DefaultSingleItemContainer.Name;
-            }
-        }
-
-        return containerType;
     }
 
+    private static string DetermineFallbackContainer(
+        OriginalContainerTag? originalContainerTag,
+        IEnumerable<Item> items,
+        HashSet<string> unsupported,
+        uint requestedCapabilities,
+        ContainerRegistry registry
+    )
+    {
+        if (
+            originalContainerTag != null
+            && registry
+                .GetContainer(originalContainerTag.ContainerType)
+                ?.SupportsAll(true, requestedCapabilities) == true
+        )
+        {
+            return originalContainerTag.ContainerType;
+        }
+
+        if (
+            items.Skip(1).Any()
+            && !unsupported.Contains(registry.DefaultMultiItemContainer.Name)
+            && registry.DefaultMultiItemContainer.SupportsAll(true, requestedCapabilities)
+        )
+        {
+            return registry.DefaultMultiItemContainer.Name;
+        }
+
+        return registry.DefaultSingleItemContainer.Name;
+    }
+
+    /// <summary>
+    /// Combines placement tags with tags exposed by the location.
+    /// </summary>
     public override IEnumerable<Tag> GetPlacementAndLocationTags()
     {
         return base.GetPlacementAndLocationTags().Concat(Location.Tags ?? Enumerable.Empty<Tag>());

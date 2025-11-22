@@ -106,6 +106,10 @@ public class PlacementVisitStateBool(
     /// Name of the placement whose visit state should be inspected.
     /// </summary>
     public string PlacementName => placementName;
+
+    /// <summary>
+    /// Flags that must be present on the placement's visit state.
+    /// </summary>
     public VisitState RequiredFlags => requiredFlags;
 
     /// <summary>
@@ -113,7 +117,7 @@ public class PlacementVisitStateBool(
     /// </summary>
     public bool RequireAny { get; }
 
-    private IBool? missingPlacementTest = missingPlacementTest;
+    private readonly IBool? missingPlacementTest = missingPlacementTest;
 
     /// <summary>
     /// An optional test to use if the placement is not found.

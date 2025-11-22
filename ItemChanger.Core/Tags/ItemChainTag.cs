@@ -50,47 +50,53 @@ public class ItemChainTag : Tag
 
     private void ModifyItem(GiveEventArgs args)
     {
-        if (args.Item is null)
+        Item? current = args.Item;
+        if (current == null)
         {
             return;
         }
 
-        if (args.Item.Redundant())
+        args.Item = current.Redundant()
+            ? TraverseSuccessors(current)
+            : TraversePredecessors(current);
+    }
+
+    private Item? TraverseSuccessors(Item item)
+    {
+        Item? current = item;
+        while (
+            current != null
+            && current.GetTag<ItemChainTag>()?.Successor is string successor
+            && !string.IsNullOrEmpty(successor)
+        )
         {
-            while (
-                args.Item is not null
-                && args.Item.GetTag<ItemChainTag>()?.Successor is string succ
-                && !string.IsNullOrEmpty(succ)
-            )
+            current = GetItem(successor);
+            if (current is not null && !current.Redundant())
             {
-                args.Item = GetItem(succ);
-                if (!args.Item.Redundant())
-                {
-                    return;
-                }
+                return current;
+            }
+        }
+
+        return null;
+    }
+
+    private Item? TraversePredecessors(Item item)
+    {
+        Item? current = item;
+        while (
+            current?.GetTag<ItemChainTag>()?.Predecessor is string predecessor
+            && !string.IsNullOrEmpty(predecessor)
+        )
+        {
+            Item candidate = GetItem(predecessor);
+            if (candidate.Redundant())
+            {
+                return current;
             }
 
-            args.Item = null;
-            return;
+            current = candidate;
         }
-        else
-        {
-            while (
-                args.Item?.GetTag<ItemChainTag>()?.Predecessor is string pred
-                && !string.IsNullOrEmpty(pred)
-            )
-            {
-                Item item = GetItem(pred);
-                if (item.Redundant())
-                {
-                    return;
-                }
-                else
-                {
-                    args.Item = item;
-                }
-            }
-            return;
-        }
+
+        return current;
     }
 }
