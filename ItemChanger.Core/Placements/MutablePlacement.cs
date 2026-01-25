@@ -7,6 +7,7 @@ using ItemChanger.Items;
 using ItemChanger.Locations;
 using ItemChanger.Logging;
 using ItemChanger.Tags;
+using UnityEngine.SceneManagement;
 
 namespace ItemChanger.Placements;
 
@@ -57,7 +58,12 @@ public class MutablePlacement(string Name)
     /// <summary>
     /// Resolves a container suited for the placement at runtime.
     /// </summary>
-    public void GetContainer(Location location, out Container container, out ContainerInfo info)
+    public void GetContainer(
+        Location location,
+        Scene scene,
+        out Container container,
+        out ContainerInfo info
+    )
     {
         string containerType;
         if (this.ContainerType == ContainerRegistry.UnknownContainerType)
@@ -88,10 +94,13 @@ public class MutablePlacement(string Name)
         }
 
         container = candidateContainer;
-        info = new ContainerInfo(candidateContainer.Name, this, location.FlingType, Cost)
-        {
-            ContainerType = containerType,
-        };
+        info = ContainerInfo.FromPlacement(
+            this,
+            scene,
+            candidateContainer.Name,
+            location.FlingType,
+            Cost
+        );
     }
 
     /// <summary>

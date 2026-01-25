@@ -33,11 +33,11 @@ public class CoordinateLocation : PlaceableLocation
     /// <summary>
     /// Places a container when the target scene becomes active and the location is unmanaged.
     /// </summary>
-    protected void OnActiveSceneChanged(Scene to)
+    protected void OnActiveSceneChanged(Scene scene)
     {
-        if (!Managed && to.name == UnsafeSceneName)
+        if (!Managed && scene.name == UnsafeSceneName)
         {
-            base.GetContainer(out Container container, out ContainerInfo info);
+            base.GetContainer(scene, out Container container, out ContainerInfo info);
             PlaceContainer(container, info);
         }
     }

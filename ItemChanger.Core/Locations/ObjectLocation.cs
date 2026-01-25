@@ -39,7 +39,7 @@ public class ObjectLocation : ContainerLocation, IReplaceableLocation
     /// </summary>
     protected virtual void OnSceneLoaded(Scene scene)
     {
-        base.GetContainer(out Container container, out ContainerInfo info);
+        base.GetContainer(scene, out Container container, out ContainerInfo info);
         if (container.Name == OriginalContainerType && container.SupportsModifyInPlace)
         {
             ModifyContainerInPlace(scene, container, info);

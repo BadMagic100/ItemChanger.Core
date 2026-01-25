@@ -7,6 +7,7 @@ using ItemChanger.Locations;
 using ItemChanger.Serialization;
 using ItemChanger.Tags;
 using Newtonsoft.Json;
+using UnityEngine.SceneManagement;
 
 namespace ItemChanger.Placements;
 
@@ -90,7 +91,12 @@ public class DualPlacement(string Name)
     /// <summary>
     /// The <see cref="MutablePlacement"/> implementation for selecting a container at runtime.
     /// </summary>
-    public void GetContainer(Location location, out Container container, out ContainerInfo info)
+    public void GetContainer(
+        Location location,
+        Scene scene,
+        out Container container,
+        out ContainerInfo info
+    )
     {
         if (this.ContainerType == ContainerRegistry.UnknownContainerType)
         {
@@ -115,10 +121,13 @@ public class DualPlacement(string Name)
         }
 
         container = candidateContainer;
-        info = new ContainerInfo(candidateContainer.Name, this, location.FlingType, Cost)
-        {
-            ContainerType = containerType,
-        };
+        info = ContainerInfo.FromPlacement(
+            this,
+            scene,
+            candidateContainer.Name,
+            location.FlingType,
+            Cost
+        );
     }
 
     private void SetContainerType()

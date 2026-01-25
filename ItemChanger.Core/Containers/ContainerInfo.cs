@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using ItemChanger.Costs;
 using ItemChanger.Enums;
 using ItemChanger.Items;
 using ItemChanger.Placements;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ItemChanger.Containers;
 
@@ -13,6 +13,11 @@ namespace ItemChanger.Containers;
 /// </summary>
 public class ContainerInfo
 {
+    /// <summary>
+    /// The scene that the container should be spawned in
+    /// </summary>
+    public required Scene ContainingScene { get; init; }
+
     /// <summary>
     /// Container type used to fulfill the instructions.
     /// </summary>
@@ -29,82 +34,76 @@ public class ContainerInfo
     public ContainerCostInfo? CostInfo { get; init; }
 
     /// <summary>
-    /// Creates ContainerInfo with standard ContainerGiveInfo.
+    /// Creates a new ContainerInfo instance based on the specified scene, placement, container type, fling type, and
+    /// optional cost information.
     /// </summary>
-    [SetsRequiredMembers]
-    public ContainerInfo(string containerType, Placement placement, FlingType flingType)
-        : this(containerType, placement, placement.Items, flingType) { }
+    /// <param name="placement">The placement details specifying where and how the container is positioned. Cannot be null.</param>
+    /// <param name="scene">The scene in which the container is placed. Cannot be null.</param>
+    /// <param name="containerType">The type of container to create. Cannot be null or empty.</param>
+    /// <param name="flingType">The type of fling action associated with the container. Determines how items are given.</param>
+    /// <param name="cost">Optional cost information for the container. If null, the container will not have associated cost data.</param>
+    /// <returns>A ContainerInfo object initialized with the provided scene, placement, container type, fling type, and optional
+    /// cost information.</returns>
+    public static ContainerInfo FromPlacement(
+        Placement placement,
+        Scene scene,
+        string containerType,
+        FlingType flingType,
+        Cost? cost = null
+    )
+    {
+        return FromPlacementAndItems(
+            placement,
+            placement.Items,
+            scene,
+            containerType,
+            flingType,
+            cost
+        );
+    }
 
     /// <summary>
-    /// Creates ContainerInfo with standard ContainerGiveInfo.
+    /// Creates a new ContainerInfo instance using the specified placement, items, scene, container type, fling type,
+    /// and optional cost information.
     /// </summary>
-    [SetsRequiredMembers]
-    public ContainerInfo(
-        string containerType,
+    /// <param name="placement">The placement information that determines where the container is located.</param>
+    /// <param name="items">The collection of items to include in the container. Cannot be null.</param>
+    /// <param name="scene">The scene in which the container will be placed. Cannot be null.</param>
+    /// <param name="containerType">The type of the container to create. Cannot be null or empty.</param>
+    /// <param name="flingType">The fling type to associate with the container's give information.</param>
+    /// <param name="cost">An optional cost to associate with the container. If null, the container will not have cost information.</param>
+    /// <returns>A new ContainerInfo instance populated with the specified placement, items, scene, container type, fling type,
+    /// and optional cost information.</returns>
+    public static ContainerInfo FromPlacementAndItems(
         Placement placement,
         IEnumerable<Item> items,
-        FlingType flingType
+        Scene scene,
+        string containerType,
+        FlingType flingType,
+        Cost? cost = null
     )
-        : this()
     {
-        ContainerType = containerType;
-        GiveInfo = new()
+        return new()
         {
-            Placement = placement,
-            Items = items,
-            FlingType = flingType,
+            ContainerType = containerType,
+            ContainingScene = scene,
+            GiveInfo = new()
+            {
+                FlingType = flingType,
+                Placement = placement,
+                Items = items,
+            },
+            CostInfo =
+                cost == null
+                    ? null
+                    : new()
+                    {
+                        Cost = cost,
+                        Placement = placement,
+                        PreviewItems = items,
+                    },
         };
     }
-
-    /// <summary>
-    /// Creates ContainerInfo with standard ContainerGiveInfo. If the cost parameter is not null, initializes costInfo with the cost.
-    /// </summary>
-    [SetsRequiredMembers]
-    public ContainerInfo(string containerType, Placement placement, FlingType flingType, Cost? cost)
-        : this(containerType, placement, placement.Items, flingType, cost) { }
-
-    /// <summary>
-    /// Creates ContainerInfo with standard ContainerGiveInfo. If the cost parameter is not null, initializes costInfo with the cost.
-    /// </summary>
-    [SetsRequiredMembers]
-    public ContainerInfo(
-        string containerType,
-        Placement placement,
-        IEnumerable<Item> items,
-        FlingType flingType,
-        Cost? cost
-    )
-        : this(containerType, placement, items, flingType)
-    {
-        if (cost is not null)
-        {
-            CostInfo = new()
-            {
-                Placement = placement,
-                Cost = cost,
-                PreviewItems = items,
-            };
-        }
-    }
-
-    /// <summary>
-    /// Creates a container descriptor using explicit give and cost information.
-    /// </summary>
-    public ContainerInfo(
-        string containerType,
-        ContainerGiveInfo giveInfo,
-        ContainerCostInfo? costInfo
-    )
-    {
-        ContainerType = containerType;
-        GiveInfo = giveInfo;
-        CostInfo = costInfo;
-    }
-
-    /// <summary>
-    /// Creates uninitialized ContainerInfo. The giveInfo and containerType fields must be initialized before use.
-    /// </summary>
-    public ContainerInfo() { }
 
     /// <summary>
     /// Searches for ContainerInfo on a ContainerInfoComponent. Returns null if neither is found.

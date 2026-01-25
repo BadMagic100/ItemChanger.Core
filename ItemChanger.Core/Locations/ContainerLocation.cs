@@ -3,6 +3,7 @@ using ItemChanger.Containers;
 using ItemChanger.Placements;
 using ItemChanger.Tags;
 using Newtonsoft.Json;
+using UnityEngine.SceneManagement;
 
 namespace ItemChanger.Locations;
 
@@ -25,7 +26,7 @@ public abstract class ContainerLocation : Location
     /// <summary>
     /// Retrieves the container implementation that will be used for this location.
     /// </summary>
-    public void GetContainer(out Container container, out ContainerInfo info)
+    public void GetContainer(Scene scene, out Container container, out ContainerInfo info)
     {
         if (Placement is not IContainerPlacement cp)
         {
@@ -33,7 +34,7 @@ public abstract class ContainerLocation : Location
                 $"Cannot get container for {nameof(ContainerLocation)} {Name} because the placement {Placement?.Name} is not an {nameof(IContainerPlacement)}"
             );
         }
-        cp.GetContainer(this, out container, out info);
+        cp.GetContainer(this, scene, out container, out info);
     }
 
     /// <summary>
