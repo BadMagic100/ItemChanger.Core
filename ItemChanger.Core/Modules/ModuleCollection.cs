@@ -29,9 +29,10 @@ public class ModuleCollection : IEnumerable<Module>
     /// </summary>
     public void Load()
     {
-        foreach (Module module in modules)
+        // usage of a for loop allows modules to create other modules
+        for (int i = 0; i < modules.Count; i++)
         {
-            module.LoadOnce();
+            modules[i].LoadOnce();
         }
     }
 
@@ -40,9 +41,10 @@ public class ModuleCollection : IEnumerable<Module>
     /// </summary>
     public void Unload()
     {
-        foreach (Module module in modules)
+        // usage of a for loop allows modules to create other modules
+        for (int i = 0; i < modules.Count; i++)
         {
-            module.UnloadOnce();
+            modules[i].UnloadOnce();
         }
     }
 
