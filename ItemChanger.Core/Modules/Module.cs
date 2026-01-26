@@ -24,6 +24,15 @@ public abstract class Module
     public string Name => GetType().Name;
 
     /// <summary>
+    /// Gets a value indicating whether the module is marked as a singleton.
+    /// </summary>
+    /// <remarks>A module is considered a singleton if it is decorated with the <see
+    /// cref="SingletonModuleAttribute"/>.</remarks>
+    [JsonIgnore]
+    public bool IsSingleton =>
+        Attribute.GetCustomAttributes(GetType(), typeof(SingletonModuleAttribute), true).Length > 0;
+
+    /// <summary>
     /// Method allowing derived classes to perform loading logic. Called once during loading.
     /// </summary>
     protected abstract void DoLoad();

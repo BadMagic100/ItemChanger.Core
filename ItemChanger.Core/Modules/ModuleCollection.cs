@@ -29,9 +29,9 @@ public class ModuleCollection : IEnumerable<Module>
     /// </summary>
     public void Load()
     {
-        for (int i = 0; i < modules.Count; i++)
+        foreach (Module module in modules)
         {
-            modules[i].LoadOnce();
+            module.LoadOnce();
         }
     }
 
@@ -40,35 +40,45 @@ public class ModuleCollection : IEnumerable<Module>
     /// </summary>
     public void Unload()
     {
-        for (int i = 0; i < modules.Count; i++)
+        foreach (Module module in modules)
         {
-            modules[i].UnloadOnce();
+            module.UnloadOnce();
         }
     }
 
     /// <summary>
     /// Adds a module instance to the collection and loads it when the host profile is active.
     /// </summary>
-    /// <param name="m">Module to add.</param>
+    /// <param name="instance">Module to add.</param>
     /// <returns>The same module instance for chaining.</returns>
-    public Module Add(Module m)
+    public T Add<T>(T instance)
+        where T : Module
     {
-        if (m == null)
+        if (instance == null)
         {
-            throw new ArgumentNullException(nameof(m));
+            throw new ArgumentNullException(nameof(instance));
         }
 
-        modules.Add(m);
-        if (
-            ItemChangerHost.Singleton.ActiveProfile != null
-            && ItemChangerHost.Singleton.ActiveProfile.State
-                >= ItemChangerProfile.LoadState.ModuleLoadCompleted
-        )
+        if (instance.IsSingleton && Get<T>() != null)
         {
-            m.LoadOnce();
+            LoggerProxy.LogError(
+                $"Attempted to add another instance of singleton module {instance.Name}"
+            );
+        }
+        else
+        {
+            modules.Add(instance);
+            if (
+                ItemChangerHost.Singleton.ActiveProfile != null
+                && ItemChangerHost.Singleton.ActiveProfile.State
+                    >= ItemChangerProfile.LoadState.ModuleLoadCompleted
+            )
+            {
+                instance.LoadOnce();
+            }
         }
 
-        return m;
+        return instance;
     }
 
     /// <summary>
@@ -80,7 +90,7 @@ public class ModuleCollection : IEnumerable<Module>
         where T : Module, new()
     {
         T t = new();
-        return (T)Add(t);
+        return Add(t);
     }
 
     /// <summary>
@@ -121,6 +131,25 @@ public class ModuleCollection : IEnumerable<Module>
         T? t = modules.OfType<T>().FirstOrDefault();
         t ??= Add<T>();
 
+        return t;
+    }
+
+    /// <summary>
+    /// Retrieves an existing module of the specified type from the collection, or adds the provided instance if none
+    /// exists.
+    /// </summary>
+    /// <typeparam name="T">The type of module to retrieve or add. Must derive from Module and have a parameterless constructor.</typeparam>
+    /// <param name="instance">The module instance to add if a module of type T does not already exist in the collection. Cannot be null.</param>
+    /// <returns>The existing module of type T if found; otherwise, the instance that was added.</returns>
+    public T GetOrAdd<T>(T instance)
+        where T : Module
+    {
+        T? t = modules.OfType<T>().FirstOrDefault();
+        if (t == null)
+        {
+            Add(instance);
+            t = instance;
+        }
         return t;
     }
 
