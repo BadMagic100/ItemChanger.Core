@@ -46,10 +46,22 @@ public abstract class Placement(string name) : TaggableObject
     /// <summary>
     /// Helper method for giving all of the items of the placement in sequence, so that the UIDef message of one leads into giving the next.
     /// </summary>
+    /// <param name="info">The GiveInfo defining how the items are to be given.</param>
+    /// <param name="callback">A callback to be invoked after giving the final item.</param>
     public void GiveAll(GiveInfo info, Action? callback = null)
     {
-        List<Item>.Enumerator enumerator = Items.GetEnumerator();
+        GiveSome(Items, info, callback);
+    }
 
+    /// <summary>
+    /// Helper method for giving some of the items of the placement in sequence, so that the UIDef message of one leads into giving the next.
+    /// </summary>
+    /// <param name="items">The items to be given. It is expected, but not enforced, that this is a subset of this placement's <see cref="Items"/></param>
+    /// <param name="info">The GiveInfo defining how the items are to be given.</param>
+    /// <param name="callback">A callback to be invoked after giving the final item.</param>
+    public void GiveSome(IEnumerable<Item> items, GiveInfo info, Action? callback = null)
+    {
+        IEnumerator<Item> enumerator = items.GetEnumerator();
         GiveRecursive();
 
         void GiveRecursive(Item? _ = null)
