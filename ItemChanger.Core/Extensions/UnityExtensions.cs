@@ -195,4 +195,20 @@ public static class UnityExtensions
         }
         return null;
     }
+
+    /// <summary>
+    /// Create a new game object which is a parent to <paramref name="self"/>,
+    /// such that the offset of self relative to the new object is equal to
+    /// <paramref name="localOffset"/>.
+    /// </summary>
+    public static GameObject WithLocalOffset(this GameObject self, Vector3 localOffset)
+    {
+        GameObject newParent = self.scene.NewGameObject();
+        newParent.name = $"{self.name} offset";
+        self.transform.parent = newParent.transform;
+        self.transform.localPosition = localOffset;
+
+        return newParent;
+    }
+
 }
