@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net472;net6.0;net8.0;net10.0</TargetFrameworks>
     <RootNamespace>ItemChanger</RootNamespace>
-    <Version>0.4.1</Version>
+    <Version>0.4.2</Version>
     <LangVersion>latest</LangVersion>
     <AnalysisMode>recommended</AnalysisMode>
     <!-- CA1711 is just kinda bad (disallows *Flags as an enum name). Others are minor performance improvements not available on older .net versions. -->
