@@ -1,7 +1,7 @@
 ﻿namespace ItemChanger.Enums;
 
 /// <summary>
-/// Enum for controlling how items (particularly geo) should be flung from a location.
+/// Enum for controlling how items should be flung from a location.
 /// </summary>
 public enum FlingType
 {

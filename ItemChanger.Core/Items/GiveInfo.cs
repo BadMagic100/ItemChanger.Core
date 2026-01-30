@@ -15,7 +15,7 @@ public class GiveInfo
     public string? Container { get; set; }
 
     /// <summary>
-    /// How geo and similar objects are allowed to be flung.
+    /// How objects are allowed to be flung.
     /// </summary>
     public FlingType FlingType { get; set; }
 
