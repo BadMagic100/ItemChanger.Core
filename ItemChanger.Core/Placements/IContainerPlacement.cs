@@ -17,7 +17,7 @@ public interface IContainerPlacement
     /// <param name="container">Container capable of dispensing the items.</param>
     /// <param name="info">Additional container metadata.</param>
     public void GetContainer(
-        Location location,
+        ContainerLocation location,
         Scene scene,
         out Container container,
         out ContainerInfo info

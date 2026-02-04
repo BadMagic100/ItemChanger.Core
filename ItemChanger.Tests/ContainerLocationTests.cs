@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using ItemChanger.Containers;
 using ItemChanger.Costs;
@@ -11,13 +10,12 @@ using ItemChanger.Tests.Fixtures;
 namespace ItemChanger.Tests;
 
 [Collection(RequiresHostCollection.NAME)]
-public sealed class MutablePlacementTests : IDisposable
+public sealed class ContainerLocationTests : IDisposable
 {
-    private const string PlacementName = "Placement";
     private readonly TestHost host;
     private readonly ContainerRegistry registry;
 
-    public MutablePlacementTests()
+    public ContainerLocationTests()
     {
         host = new TestHost();
         registry = host.ContainerRegistry;
@@ -33,14 +31,11 @@ public sealed class MutablePlacementTests : IDisposable
     public void ChooseContainerType_ForceDefaultUsesDefaultSingle()
     {
         TestContainerLocation location = new("ForceDefault") { ForceDefaultContainer = true };
-        MutablePlacement placement = new(PlacementName) { Location = location };
+        Placement placement = location.Wrap();
         placement.Add(new PreferredContainerItem("Item", "Custom"));
+        placement.LoadOnce();
 
-        string container = MutablePlacement.ChooseContainerType(
-            placement,
-            location,
-            placement.Items
-        );
+        string container = location.ChooseContainerType();
 
         Assert.Equal(registry.DefaultSingleItemContainer.Name, container);
     }
@@ -51,17 +46,14 @@ public sealed class MutablePlacementTests : IDisposable
         string originalType = RegisterContainer("Original");
         string preferredType = RegisterContainer("Preferred");
         TestContainerLocation location = new("WithOriginal") { ForceDefaultContainer = false };
-        MutablePlacement placement = new(PlacementName) { Location = location };
+        Placement placement = location.Wrap();
         placement.AddTag(
             new OriginalContainerTag { ContainerType = originalType, Priority = true }
         );
         placement.Add(new PreferredContainerItem("Item", preferredType));
+        placement.LoadOnce();
 
-        string container = MutablePlacement.ChooseContainerType(
-            placement,
-            location,
-            placement.Items
-        );
+        string container = location.ChooseContainerType();
 
         Assert.Equal(originalType, container);
     }
@@ -73,17 +65,14 @@ public sealed class MutablePlacementTests : IDisposable
         string preferredType = RegisterContainer("Preferred");
         TestContainerLocation location = new("WithoutOriginal") { ForceDefaultContainer = false };
         location.Disallow(originalType);
-        MutablePlacement placement = new(PlacementName) { Location = location };
+        Placement placement = location.Wrap();
         placement.AddTag(
             new OriginalContainerTag { ContainerType = originalType, Priority = true }
         );
         placement.Add(new PreferredContainerItem("Item", preferredType));
+        placement.LoadOnce();
 
-        string container = MutablePlacement.ChooseContainerType(
-            placement,
-            location,
-            placement.Items
-        );
+        string container = location.ChooseContainerType();
 
         Assert.Equal(preferredType, container);
     }
@@ -93,14 +82,11 @@ public sealed class MutablePlacementTests : IDisposable
     {
         string preferredType = RegisterContainer("ItemPreferred");
         TestContainerLocation location = new("ItemPreference") { ForceDefaultContainer = false };
-        MutablePlacement placement = new(PlacementName) { Location = location };
+        Placement placement = location.Wrap();
         placement.Add(new PreferredContainerItem("Item", preferredType));
+        placement.LoadOnce();
 
-        string container = MutablePlacement.ChooseContainerType(
-            placement,
-            location,
-            placement.Items
-        );
+        string container = location.ChooseContainerType();
 
         Assert.Equal(preferredType, container);
     }
@@ -115,21 +101,72 @@ public sealed class MutablePlacementTests : IDisposable
         );
         string fallbackType = RegisterContainer("Capable");
         TestContainerLocation location = new("NeedsPay") { ForceDefaultContainer = false };
-        MutablePlacement placement = new(PlacementName)
-        {
-            Location = location,
-            Cost = new TestCost(),
-        };
+        MutablePlacement placement = (MutablePlacement)location.Wrap();
+        placement.Cost = new TestCost();
         placement.AddTag(new OriginalContainerTag { ContainerType = forcedType, Force = true });
         placement.Add(new PreferredContainerItem("Item", fallbackType));
+        placement.LoadOnce();
 
-        string container = MutablePlacement.ChooseContainerType(
-            placement,
-            location,
-            placement.Items
-        );
+        string container = location.ChooseContainerType();
+        bool replaced = location.WillBeReplaced();
 
         Assert.Equal(forcedType, container);
+    }
+
+    [Fact]
+    public void ChooseContainerType_NoPlacement_ReturnsOriginalContainerTypeWhenSpecified()
+    {
+        string preferredType = RegisterContainer("Preferred");
+        TestContainerLocation location = new("Test");
+        location.AddTag(new OriginalContainerTag { ContainerType = preferredType });
+
+        string container = location.ChooseContainerType();
+        Assert.Equal(preferredType, container);
+    }
+
+    [Fact]
+    public void ChooseContainerType_NoPlacement_ReturnsDefaultContainerTypeWhenNoOriginalSpecified()
+    {
+        TestContainerLocation location = new("Test");
+
+        string container = location.ChooseContainerType();
+        Assert.Equal(host.ContainerRegistry.DefaultSingleItemContainer.Name, container);
+    }
+
+    [Fact]
+    public void GetOriginalContainerType_ReturnsOriginalContainerTypeWhenSpecified()
+    {
+        string originalType = "OriginalType";
+        TestContainerLocation location = new("TestLocation");
+        location.AddTag(new OriginalContainerTag { ContainerType = originalType });
+
+        string? result = location.GetOriginalContainerType();
+
+        Assert.Equal(originalType, result);
+    }
+
+    [Fact]
+    public void GetOriginalContainerType_ReturnsNullWhenNoOriginalContainerSpecified()
+    {
+        TestContainerLocation location = new("TestLocation");
+
+        string? result = location.GetOriginalContainerType();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetOriginalContainerType_ReturnsOriginalContainerTypeFromPlacementTags()
+    {
+        string originalType = "OriginalTypeFromPlacement";
+        TestContainerLocation location = new("TestLocation");
+        Placement placement = location.Wrap();
+        placement.AddTag(new OriginalContainerTag { ContainerType = originalType });
+        placement.LoadOnce();
+
+        string? result = location.GetOriginalContainerType();
+
+        Assert.Equal(originalType, result);
     }
 
     private string RegisterContainer(
@@ -173,8 +210,7 @@ public sealed class MutablePlacementTests : IDisposable
 
         protected override void DoUnload() { }
 
-        public override Placement Wrap() =>
-            throw new NotImplementedException("Wrap is unused in these tests.");
+        public override Placement Wrap() => new MutablePlacement(Name) { Location = this };
     }
 
     private sealed class PreferredContainerItem : Item

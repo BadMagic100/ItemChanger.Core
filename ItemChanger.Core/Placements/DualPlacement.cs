@@ -92,7 +92,7 @@ public class DualPlacement(string Name)
     /// The <see cref="MutablePlacement"/> implementation for selecting a container at runtime.
     /// </summary>
     public void GetContainer(
-        Location location,
+        ContainerLocation location,
         Scene scene,
         out Container container,
         out ContainerInfo info
@@ -100,11 +100,7 @@ public class DualPlacement(string Name)
     {
         if (this.ContainerType == ContainerRegistry.UnknownContainerType)
         {
-            this.ContainerType = MutablePlacement.ChooseContainerType(
-                this,
-                location as Locations.ContainerLocation,
-                Items
-            );
+            this.ContainerType = location.ChooseContainerType();
         }
 
         ContainerRegistry reg = ItemChangerHost.Singleton.ContainerRegistry;
@@ -132,30 +128,21 @@ public class DualPlacement(string Name)
 
     private void SetContainerType()
     {
-        uint requestedCapabilities = GetPlacementAndLocationTags()
-            .OfType<INeedsContainerCapability>()
-            .Select(x => x.RequestedCapabilities)
-            .Aggregate(0u, (acc, next) => acc | next);
-        if (Cost != null)
-        {
-            requestedCapabilities |= ContainerCapabilities.PayCosts;
-        }
-
         ContainerRegistry reg = ItemChangerHost.Singleton.ContainerRegistry;
-        if (reg.GetContainer(ContainerType)?.SupportsAll(true, requestedCapabilities) == true)
-        {
-            return;
-        }
 
-        Locations.ContainerLocation? cl =
-            (FalseLocation as Locations.ContainerLocation)
-            ?? (TrueLocation as Locations.ContainerLocation);
+        ContainerLocation? cl =
+            (FalseLocation as ContainerLocation) ?? (TrueLocation as ContainerLocation);
         if (cl == null)
         {
             return;
         }
 
-        ContainerType = MutablePlacement.ChooseContainerType(this, cl, Items); // container type already failed the initial test
+        if (reg.GetContainer(ContainerType)?.SupportsAll(true, cl.GetNeededCapabilities()) == true)
+        {
+            return;
+        }
+
+        ContainerType = cl.ChooseContainerType(); // container type already failed the initial test
     }
 
     /// <inheritdoc/>
