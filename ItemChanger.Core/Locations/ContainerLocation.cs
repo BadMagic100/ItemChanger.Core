@@ -173,7 +173,8 @@ public abstract class ContainerLocation : Location
         bool supported =
             Supports(originalContainerTag.ContainerType)
             && !unsupported.Contains(originalContainerTag.ContainerType)
-            && originalContainer.SupportsAll(false, requestedCapabilities);
+            && originalContainer.SupportsModifyInPlace
+            && originalContainer.SupportsAll(requestedCapabilities);
         if (supported)
         {
             containerType = originalContainerTag.ContainerType;
@@ -205,7 +206,9 @@ public abstract class ContainerLocation : Location
             .FirstOrDefault(c =>
                 Supports(c)
                 && !unsupported.Contains(c)
-                && registry.GetContainer(c)?.SupportsAll(true, requestedCapabilities) == true
+                && registry.GetContainer(c) is Container ct
+                && ct.SupportsInstantiate
+                && ct.SupportsAll(requestedCapabilities) == true
             );
     }
 
@@ -218,9 +221,9 @@ public abstract class ContainerLocation : Location
     {
         if (
             originalContainerTag != null
-            && registry
-                .GetContainer(originalContainerTag.ContainerType)
-                ?.SupportsAll(true, requestedCapabilities) == true
+            && registry.GetContainer(originalContainerTag.ContainerType) is Container ct
+            && ct.SupportsModifyInPlace
+            && ct.SupportsAll(requestedCapabilities) == true
         )
         {
             return originalContainerTag.ContainerType;
@@ -229,7 +232,8 @@ public abstract class ContainerLocation : Location
         if (
             Placement?.Items.Skip(1).Any() == true
             && !unsupported.Contains(registry.DefaultMultiItemContainer.Name)
-            && registry.DefaultMultiItemContainer.SupportsAll(true, requestedCapabilities)
+            && registry.DefaultMultiItemContainer.SupportsInstantiate
+            && registry.DefaultMultiItemContainer.SupportsAll(requestedCapabilities)
         )
         {
             return registry.DefaultMultiItemContainer.Name;

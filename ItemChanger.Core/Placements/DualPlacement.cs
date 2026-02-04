@@ -137,7 +137,11 @@ public class DualPlacement(string Name)
             return;
         }
 
-        if (reg.GetContainer(ContainerType)?.SupportsAll(true, cl.GetNeededCapabilities()) == true)
+        if (
+            reg.GetContainer(ContainerType) is Container c
+            && c.SupportsInstantiate
+            && c.SupportsAll(cl.GetNeededCapabilities())
+        )
         {
             return;
         }

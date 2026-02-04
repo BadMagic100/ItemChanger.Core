@@ -59,6 +59,24 @@ public sealed class ContainerLocationTests : IDisposable
     }
 
     [Fact]
+    public void ChooseContainerType_ReplacesPrioritizedOriginalContainerWhenNoModify()
+    {
+        string originalType = RegisterContainer("Original", modifyInPlace: false);
+        string preferredType = RegisterContainer("Preferred");
+        TestContainerLocation location = new("WithoutOriginal") { ForceDefaultContainer = false };
+        Placement placement = location.Wrap();
+        placement.AddTag(
+            new OriginalContainerTag { ContainerType = originalType, Priority = true }
+        );
+        placement.Add(new PreferredContainerItem("Item", preferredType));
+        placement.LoadOnce();
+
+        string container = location.ChooseContainerType();
+
+        Assert.Equal(preferredType, container);
+    }
+
+    [Fact]
     public void ChooseContainerType_ReplacesPrioritizedOriginalContainerWhenUnsupported()
     {
         string originalType = RegisterContainer("Original");
@@ -172,10 +190,11 @@ public sealed class ContainerLocationTests : IDisposable
     private string RegisterContainer(
         string name,
         bool instantiate = true,
+        bool modifyInPlace = true,
         uint capabilities = uint.MaxValue
     )
     {
-        StubContainer container = new(name, instantiate, capabilities);
+        StubContainer container = new(name, instantiate, modifyInPlace, capabilities);
         registry.DefineContainer(container);
         return container.Name;
     }
@@ -229,12 +248,18 @@ public sealed class ContainerLocationTests : IDisposable
         public override void GiveImmediate(GiveInfo info) { }
     }
 
-    private sealed class StubContainer(string name, bool instantiate, uint supportedCapabilities)
-        : Container
+    private sealed class StubContainer(
+        string name,
+        bool instantiate,
+        bool modifyInPlace,
+        uint supportedCapabilities
+    ) : Container
     {
         public override string Name { get; } = name;
 
         public override bool SupportsInstantiate => instantiate;
+
+        public override bool SupportsModifyInPlace => modifyInPlace;
 
         public override uint SupportedCapabilities { get; } = supportedCapabilities;
 

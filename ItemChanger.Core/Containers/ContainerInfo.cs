@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ItemChanger.Costs;
 using ItemChanger.Enums;
 using ItemChanger.Items;
@@ -22,6 +23,11 @@ public class ContainerInfo
     /// Container type used to fulfill the instructions.
     /// </summary>
     public required string ContainerType { get; init; }
+
+    /// <summary>
+    /// The capabilities requested by the related <see cref="Locations.ContainerLocation"/> and its placement.
+    /// </summary>
+    public uint RequestedCapabilities { get; init; }
 
     /// <summary>
     /// Details about how items should be dispensed.
@@ -83,10 +89,22 @@ public class ContainerInfo
         Cost? cost = null
     )
     {
+        uint neededCapabilities = placement
+            .GetPlacementAndLocationTags()
+            .OfType<INeedsContainerCapability>()
+            .Select(x => x.RequestedCapabilities)
+            .Aggregate(0u, (acc, next) => acc | next);
+
+        if (cost != null)
+        {
+            neededCapabilities |= ContainerCapabilities.PayCosts;
+        }
+
         return new()
         {
             ContainerType = containerType,
             ContainingScene = scene,
+            RequestedCapabilities = neededCapabilities,
             GiveInfo = new()
             {
                 FlingType = flingType,
