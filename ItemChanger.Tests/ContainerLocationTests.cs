@@ -106,7 +106,6 @@ public sealed class ContainerLocationTests : IDisposable
         placement.LoadOnce();
 
         string container = location.ChooseBestContainerType();
-        bool replaced = location.WillBeReplaced();
 
         Assert.Equal(forcedType, container);
     }

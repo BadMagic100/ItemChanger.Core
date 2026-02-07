@@ -64,11 +64,6 @@ public abstract class ContainerLocation : Location
     #region Selection
 
     /// <summary>
-    /// Determines whether the object is expected to be replaced with a new container.
-    /// </summary>
-    public bool WillBeReplaced() => OriginalContainerType != ChooseBestContainerType();
-
-    /// <summary>
     /// Determines the most appropriate container type for the location based on placement context.
     /// Will always return a non-null container type other than <see cref="ContainerRegistry.UnknownContainerType"/>.
     /// </summary>
