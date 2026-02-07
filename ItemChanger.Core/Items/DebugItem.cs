@@ -1,4 +1,5 @@
-﻿using ItemChanger.Logging;
+﻿using ItemChanger.Containers;
+using ItemChanger.Logging;
 
 namespace ItemChanger.Items;
 
@@ -7,6 +8,11 @@ namespace ItemChanger.Items;
 /// </summary>
 public class DebugItem : Item
 {
+    /// <summary>
+    /// The preferred container to serve this item at a placement
+    /// </summary>
+    public string? PreferredContainer { get; init; }
+
     /// <inheritdoc/>
     public override void GiveImmediate(GiveInfo info)
     {
@@ -14,4 +20,8 @@ public class DebugItem : Item
             $"Given item {Name} with info: {{container={info.Container} fling={info.FlingType} msg={info.MessageType}}}"
         );
     }
+
+    /// <inheritdoc/>
+    public override string GetPreferredContainer() =>
+        PreferredContainer ?? ContainerRegistry.UnknownContainerType;
 }

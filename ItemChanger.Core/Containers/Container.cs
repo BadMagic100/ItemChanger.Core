@@ -154,13 +154,12 @@ public abstract class Container
     /// <summary>
     /// Determines whether all specified capabilities are supported.
     /// </summary>
-    /// <param name="instantiate">Whether the container should support instantiation.</param>
     /// <param name="capabilities">A bitmask representing the capabilities to check.</param>
+    ///
     /// <returns><see langword="true"/> if all specified capabilities are supported; otherwise, <see langword="false"/>.</returns>
-    public bool SupportsAll(bool instantiate, uint capabilities)
+    public virtual bool SupportsAll(uint capabilities)
     {
-        return (!instantiate || SupportsInstantiate)
-            && (SupportedCapabilities & capabilities) == capabilities;
+        return (SupportedCapabilities & capabilities) == capabilities;
     }
 
     /// <summary>
@@ -170,16 +169,16 @@ public abstract class Container
     /// This method evaluates the combined result of the provided capability flags to determine if
     /// all are supported.
     /// </remarks>
-    /// <param name="instantiate">Whether the container should support instantiation.</param>
     /// <param name="capabilities">
     /// A collection of capability flags represented as unsigned integers. Each flag is combined
     /// using a bitwise OR operation.
     /// </param>
+    ///
     /// <returns><see langword="true"/> if all specified capabilities are supported; otherwise, <see langword="false"/>.</returns>
-    public bool SupportsAll(bool instantiate, IEnumerable<uint> capabilities)
+    public bool SupportsAll(IEnumerable<uint> capabilities)
     {
         uint union = capabilities.Aggregate(0u, (acc, next) => acc | next);
-        return SupportsAll(instantiate, union);
+        return SupportsAll(union);
     }
 
     /// <summary>
