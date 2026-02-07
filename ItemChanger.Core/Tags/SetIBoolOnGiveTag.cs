@@ -16,7 +16,7 @@ public class SetIBoolOnGiveTag : Tag
     /// <summary>
     /// Bool updated when the tag triggers.
     /// </summary>
-    public required IWritableBool Bool { get; init; }
+    public required IWritableValueProvider<bool> Bool { get; init; }
 
     /// <summary>
     /// Value assigned to <see cref="Bool"/> upon trigger.

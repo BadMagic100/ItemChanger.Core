@@ -15,7 +15,7 @@ public abstract class ThresholdIntCost : Cost
     /// <summary>
     /// The value to use to evaluate whether the cost is payable
     /// </summary>
-    protected abstract IInteger GetValueSource();
+    protected abstract IValueProvider<int> GetValueSource();
 
     /// <inheritdoc/>
     public override bool CanPay() => Amount >= GetValueSource().Value;
@@ -43,7 +43,7 @@ public abstract class ConsumableIntCost : Cost
     /// <summary>
     /// The value to use to evaluate and pay the cost
     /// </summary>
-    protected abstract IWritableInteger GetValueSource();
+    protected abstract IWritableValueProvider<int> GetValueSource();
 
     /// <inheritdoc/>
     public override bool CanPay() => Amount >= GetValueSource().Value;

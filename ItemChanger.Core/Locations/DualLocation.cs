@@ -25,7 +25,7 @@ public class DualLocation : Location
     /// <summary>
     /// A test to determine which location to use
     /// </summary>
-    public required IBool Test { get; init; }
+    public required IValueProvider<bool> Test { get; init; }
 
     /// <summary>
     /// The location to use when <see cref="Test"/> is <code>false</code>

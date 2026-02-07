@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ItemChanger.Serialization;
+using UnityEngine;
 
 namespace ItemChanger.Costs;
 
@@ -15,7 +16,7 @@ public abstract class CostDisplayer
     /// A sprite to use to display the cost visually, if contextually applicable. If no sprite
     /// is provided, existing sprites won't be replaced. Default is null.
     /// </summary>
-    public virtual ISprite? CustomCostSprite { get; set; }
+    public virtual IValueProvider<Sprite>? CustomCostSprite { get; set; }
 
     /// <summary>
     /// Whether nested costs should be considered cumulative. A cost is cumulative if costs paid

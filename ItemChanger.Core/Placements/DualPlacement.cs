@@ -34,7 +34,7 @@ public class DualPlacement(string Name)
     /// <summary>
     /// Test determining which location is active.
     /// </summary>
-    public required IBool Test { get; init; }
+    public required IValueProvider<bool> Test { get; init; }
 
     private bool cachedValue;
 

@@ -10,7 +10,7 @@ public abstract class ThresholdBoolCost : Cost
     /// <summary>
     /// The value to use to evaluate whether the cost is payable
     /// </summary>
-    protected abstract IBool GetValueSource();
+    protected abstract IValueProvider<bool> GetValueSource();
 
     /// <inheritdoc/>
     public override bool CanPay() => GetValueSource().Value;
@@ -33,7 +33,7 @@ public abstract class ConsumableBoolCost : Cost
     /// <summary>
     /// The value to use to evaluate and pay the cost
     /// </summary>
-    protected abstract IWritableBool GetValueSource();
+    protected abstract IWritableValueProvider<bool> GetValueSource();
 
     /// <inheritdoc/>
     public override bool CanPay() => GetValueSource().Value;
