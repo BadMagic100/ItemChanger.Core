@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using ItemChanger.Containers;
 using ItemChanger.Costs;
 using ItemChanger.Locations;
+using ItemChanger.Logging;
 using ItemChanger.Tags;
 using UnityEngine.SceneManagement;
 
@@ -26,12 +26,7 @@ public class MutablePlacement(string Name)
     Location IPrimaryLocationPlacement.Location => Location;
 
     /// <inheritdoc/>
-    public override string MainContainerType => ContainerType;
-
-    /// <summary>
-    /// Gets the currently selected container type.
-    /// </summary>
-    public string ContainerType { get; private set; } = ContainerRegistry.UnknownContainerType;
+    public override string MainContainerType => Location.ChooseBestContainerType();
 
     /// <summary>
     /// Optional cost paid before retrieving items from this placement.
@@ -63,28 +58,16 @@ public class MutablePlacement(string Name)
         out ContainerInfo info
     )
     {
-        string containerType;
-        if (this.ContainerType == ContainerRegistry.UnknownContainerType)
-        {
-            this.ContainerType = location.ChooseContainerType();
-        }
+        string containerType = location.ChooseBestContainerType();
+        ContainerRegistry reg = ItemChangerHost.Singleton.ContainerRegistry;
 
-        containerType = this.ContainerType;
-        Container? candidateContainer = ItemChangerHost.Singleton.ContainerRegistry.GetContainer(
-            containerType
-        );
-        if (candidateContainer == null || !candidateContainer.SupportsInstantiate)
+        Container? candidateContainer = reg.GetContainer(containerType);
+        if (candidateContainer is null)
         {
-            this.ContainerType = containerType = location.ChooseContainerType();
-            candidateContainer = ItemChangerHost.Singleton.ContainerRegistry.GetContainer(
-                containerType
+            LoggerProxy.LogWarn(
+                $"For placement {Name}, the location {location.Name} returned an invalid container type. Falling back to default single-item container."
             );
-            if (candidateContainer == null)
-            {
-                throw new InvalidOperationException(
-                    $"Unable to resolve container type {containerType} for placement {Name}!"
-                );
-            }
+            candidateContainer = reg.DefaultSingleItemContainer;
         }
 
         container = candidateContainer;

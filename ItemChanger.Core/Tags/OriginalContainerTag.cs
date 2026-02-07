@@ -3,12 +3,11 @@
 namespace ItemChanger.Tags;
 
 /// <summary>
-/// Indicates the original container type for a location or placement, which will be used
+/// Indicates the original container type for a location, which will be used
 /// if possible if no other preference is present. Also includes various ways that the original
 /// container may take precedence over an item's preferred container.
 /// </summary>
 [LocationTag]
-[PlacementTag]
 public class OriginalContainerTag : Tag
 {
     /// <summary>
@@ -35,4 +34,13 @@ public class OriginalContainerTag : Tag
     /// If both Priority and <see cref="Force"/> are <see langword="true"/>, the <see cref="Force"/> behavior will be used.
     /// </remarks>
     public bool Priority { get; init; }
+
+    /// <summary>
+    /// Indicates whether the original container should be discarded as a fallback when item-specified
+    /// preferences do not yield a valid container during container selection.
+    /// </summary>
+    /// <remarks>
+    /// If <see cref="Force"/> or <see cref="Priority"/> is <see langword="true"/>, LowPriority is ignored.
+    /// </remarks>
+    public bool LowPriority { get; init; }
 }

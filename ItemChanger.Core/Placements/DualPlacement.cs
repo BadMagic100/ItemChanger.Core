@@ -4,6 +4,7 @@ using ItemChanger.Containers;
 using ItemChanger.Costs;
 using ItemChanger.Events.Args;
 using ItemChanger.Locations;
+using ItemChanger.Logging;
 using ItemChanger.Serialization;
 using ItemChanger.Tags;
 using Newtonsoft.Json;
@@ -37,13 +38,17 @@ public class DualPlacement(string Name)
 
     private bool cachedValue;
 
-    /// <summary>
-    /// Container type currently assigned to the placement.
-    /// </summary>
-    public string ContainerType { get; private set; } = ContainerRegistry.UnknownContainerType;
-
     /// <inheritdoc/>
-    public override string MainContainerType => ContainerType;
+    public override string MainContainerType
+    {
+        get
+        {
+            ContainerLocation? cl = cachedValue
+                ? TrueLocation as ContainerLocation
+                : FalseLocation as ContainerLocation;
+            return cl?.ChooseBestContainerType() ?? ContainerRegistry.UnknownContainerType;
+        }
+    }
 
     /// <summary>
     /// Gets the location currently selected by <see cref="Test"/>.
@@ -62,7 +67,6 @@ public class DualPlacement(string Name)
         cachedValue = Test.Value;
         TrueLocation.Placement = this;
         FalseLocation.Placement = this;
-        SetContainerType();
         Location.LoadOnce();
         Cost?.LoadOnce();
         ItemChangerHost.Singleton.GameEvents.BeforeNextSceneLoaded += BeforeNextSceneLoaded;
@@ -98,21 +102,15 @@ public class DualPlacement(string Name)
         out ContainerInfo info
     )
     {
-        if (this.ContainerType == ContainerRegistry.UnknownContainerType)
-        {
-            this.ContainerType = location.ChooseContainerType();
-        }
-
+        string containerType = location.ChooseBestContainerType();
         ContainerRegistry reg = ItemChangerHost.Singleton.ContainerRegistry;
 
-        string containerType = this.ContainerType;
         Container? candidateContainer = reg.GetContainer(containerType);
-        if (candidateContainer is null || !candidateContainer.SupportsInstantiate)
+        if (candidateContainer is null)
         {
-            // this means that the container that was chosen on load isn't valid
-            // most likely due from switching from a noninstantiatable ECL to a CL
-            // so, we make a shiny but we don't modify the saved container type
-            containerType = reg.DefaultSingleItemContainer.Name;
+            LoggerProxy.LogWarn(
+                $"For placement {Name}, the location {location.Name} returned an invalid container type. Falling back to default single-item container."
+            );
             candidateContainer = reg.DefaultSingleItemContainer;
         }
 
@@ -124,29 +122,6 @@ public class DualPlacement(string Name)
             location.FlingType,
             Cost
         );
-    }
-
-    private void SetContainerType()
-    {
-        ContainerRegistry reg = ItemChangerHost.Singleton.ContainerRegistry;
-
-        ContainerLocation? cl =
-            (FalseLocation as ContainerLocation) ?? (TrueLocation as ContainerLocation);
-        if (cl == null)
-        {
-            return;
-        }
-
-        if (
-            reg.GetContainer(ContainerType) is Container c
-            && c.SupportsInstantiate
-            && c.SupportsAll(cl.GetNeededCapabilities())
-        )
-        {
-            return;
-        }
-
-        ContainerType = cl.ChooseContainerType(); // container type already failed the initial test
     }
 
     /// <inheritdoc/>

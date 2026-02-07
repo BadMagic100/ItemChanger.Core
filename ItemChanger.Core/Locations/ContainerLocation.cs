@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using ItemChanger.Containers;
 using ItemChanger.Logging;
@@ -65,25 +66,13 @@ public abstract class ContainerLocation : Location
     /// <summary>
     /// Determines whether the object is expected to be replaced with a new container.
     /// </summary>
-    public bool WillBeReplaced() => GetOriginalContainerType() != ChooseContainerType();
-
-    /// <summary>
-    /// Gets the original container type for this location, or null if one was not specified
-    /// </summary>
-    public string? GetOriginalContainerType()
-    {
-        IEnumerable<Tag> relevantTags = Placement?.GetPlacementAndLocationTags() ?? Tags ?? [];
-        OriginalContainerTag? originalContainerTag = relevantTags
-            .OfType<OriginalContainerTag>()
-            .FirstOrDefault();
-        return originalContainerTag?.ContainerType;
-    }
+    public bool WillBeReplaced() => OriginalContainerType != ChooseBestContainerType();
 
     /// <summary>
     /// Determines the most appropriate container type for the location based on placement context.
     /// Will always return a non-null container type other than <see cref="ContainerRegistry.UnknownContainerType"/>.
     /// </summary>
-    public string ChooseContainerType()
+    public string ChooseBestContainerType()
     {
         ContainerRegistry reg = ItemChangerHost.Singleton.ContainerRegistry;
         if (ForceDefaultContainer)
@@ -92,33 +81,40 @@ public abstract class ContainerLocation : Location
         }
 
         uint requestedCapabilities = GetNeededCapabilities();
-        IEnumerable<Tag> relevantTags = Placement?.GetPlacementAndLocationTags() ?? Tags ?? [];
         HashSet<string> unsupported =
         [
-            .. relevantTags.OfType<UnsupportedContainerTag>().Select(t => t.ContainerType),
+            .. (Placement?.GetPlacementAndLocationTags() ?? Tags ?? [])
+                .OfType<UnsupportedContainerTag>()
+                .Select(t => t.ContainerType),
         ];
-        OriginalContainerTag? originalContainerTag = relevantTags
+        OriginalContainerTag? originalContainerTag = (Tags ?? [])
             .OfType<OriginalContainerTag>()
             .FirstOrDefault();
 
         if (
-            IsOriginalContainerPrioritized(
+            IsOriginalContainerPrioritizedAndValid(
                 originalContainerTag,
                 requestedCapabilities,
                 unsupported,
                 reg,
-                out string prioritizedContainer
+                out string? containerType
             )
         )
         {
-            return prioritizedContainer;
+            return containerType;
         }
 
-        string? containerType = GetItemsPreferredContainer(unsupported, requestedCapabilities, reg);
+        containerType = GetItemsPreferredContainer(
+            originalContainerTag,
+            unsupported,
+            requestedCapabilities,
+            reg
+        );
 
-        if (!string.IsNullOrEmpty(containerType))
+        if (containerType != null)
         {
-            return containerType!;
+            // GetItemsPreferredContainer does the modify/instantiate check for us
+            return containerType;
         }
 
         return GetLocationPreferredContainerOrFallback(
@@ -147,15 +143,19 @@ public abstract class ContainerLocation : Location
         return neededCapabilities;
     }
 
-    private bool IsOriginalContainerPrioritized(
+    /// <summary>
+    /// Determines whether the original container should be prioritized above item preferences,
+    /// considering whether the container can be instantiated or modified in place.
+    /// </summary>
+    private bool IsOriginalContainerPrioritizedAndValid(
         OriginalContainerTag? originalContainerTag,
         uint requestedCapabilities,
         HashSet<string> unsupported,
         ContainerRegistry registry,
-        out string containerType
+        [NotNullWhen(true)] out string? containerType
     )
     {
-        containerType = ContainerRegistry.UnknownContainerType;
+        containerType = null;
         if (
             originalContainerTag == null
             || !(originalContainerTag.Force || originalContainerTag.Priority)
@@ -173,11 +173,10 @@ public abstract class ContainerLocation : Location
         bool supported =
             Supports(originalContainerTag.ContainerType)
             && !unsupported.Contains(originalContainerTag.ContainerType)
-            && originalContainer.SupportsModifyInPlace
             && originalContainer.SupportsAll(requestedCapabilities);
-        if (supported)
+        if (supported && SupportsNeededInstantiateOrModify(originalContainerTag, originalContainer))
         {
-            containerType = originalContainerTag.ContainerType;
+            containerType = originalContainer.Name;
             return true;
         }
 
@@ -188,14 +187,29 @@ public abstract class ContainerLocation : Location
                     + $"{originalContainer.Name} was forced despite being unsupported by the location or missing "
                     + $"necessary capabilities."
             );
-            containerType = originalContainerTag.ContainerType;
-            return true;
+            if (SupportsNeededInstantiateOrModify(originalContainerTag, originalContainer))
+            {
+                containerType = originalContainer.Name;
+                return true;
+            }
+            else
+            {
+                LoggerProxy.LogWarn(
+                    $"{originalContainer.Name} does not support in-place modification or instantiation."
+                );
+            }
         }
 
         return false;
     }
 
+    /// <summary>
+    /// Gets the first valid container based on the current placement's items' preferences,
+    /// considering whether the container can be either modified or instantiated depending
+    /// on the location's original container
+    /// </summary>
     private string? GetItemsPreferredContainer(
+        OriginalContainerTag? originalContainerTag,
         HashSet<string> unsupported,
         uint requestedCapabilities,
         ContainerRegistry registry
@@ -207,11 +221,16 @@ public abstract class ContainerLocation : Location
                 Supports(c)
                 && !unsupported.Contains(c)
                 && registry.GetContainer(c) is Container ct
-                && ct.SupportsInstantiate
+                && SupportsNeededInstantiateOrModify(originalContainerTag, ct)
                 && ct.SupportsAll(requestedCapabilities) == true
             );
     }
 
+    /// <summary>
+    /// Gets the location's preferred container type or the appropriate fallback container,
+    /// considering whether containers can be either modified or instantiated depending on the
+    /// location's original container.
+    /// </summary>
     private string GetLocationPreferredContainerOrFallback(
         OriginalContainerTag? originalContainerTag,
         HashSet<string> unsupported,
@@ -221,8 +240,9 @@ public abstract class ContainerLocation : Location
     {
         if (
             originalContainerTag != null
+            && !originalContainerTag.LowPriority
             && registry.GetContainer(originalContainerTag.ContainerType) is Container ct
-            && ct.SupportsModifyInPlace
+            && SupportsNeededInstantiateOrModify(originalContainerTag, ct)
             && ct.SupportsAll(requestedCapabilities) == true
         )
         {
@@ -232,7 +252,10 @@ public abstract class ContainerLocation : Location
         if (
             Placement?.Items.Skip(1).Any() == true
             && !unsupported.Contains(registry.DefaultMultiItemContainer.Name)
-            && registry.DefaultMultiItemContainer.SupportsInstantiate
+            && SupportsNeededInstantiateOrModify(
+                originalContainerTag,
+                registry.DefaultMultiItemContainer
+            )
             && registry.DefaultMultiItemContainer.SupportsAll(requestedCapabilities)
         )
         {
@@ -240,6 +263,23 @@ public abstract class ContainerLocation : Location
         }
 
         return registry.DefaultSingleItemContainer.Name;
+    }
+
+    /// <summary>
+    /// Determines whether the container supports in-place modification and/or instantiation, based on the original
+    /// container
+    /// </summary>
+    private static bool SupportsNeededInstantiateOrModify(
+        OriginalContainerTag? originalContainerTag,
+        Container container
+    )
+    {
+        if (originalContainerTag?.ContainerType == container.Name)
+        {
+            // theoretically it's possible this is false! not very realistic, but possible.
+            return container.SupportsModifyInPlace || container.SupportsInstantiate;
+        }
+        return container.SupportsInstantiate;
     }
 
     #endregion

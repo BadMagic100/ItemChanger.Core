@@ -35,7 +35,7 @@ public sealed class ContainerLocationTests : IDisposable
         placement.Add(new PreferredContainerItem("Item", "Custom"));
         placement.LoadOnce();
 
-        string container = location.ChooseContainerType();
+        string container = location.ChooseBestContainerType();
 
         Assert.Equal(registry.DefaultSingleItemContainer.Name, container);
     }
@@ -47,33 +47,13 @@ public sealed class ContainerLocationTests : IDisposable
         string preferredType = RegisterContainer("Preferred");
         TestContainerLocation location = new("WithOriginal") { ForceDefaultContainer = false };
         Placement placement = location.Wrap();
-        placement.AddTag(
-            new OriginalContainerTag { ContainerType = originalType, Priority = true }
-        );
+        location.AddTag(new OriginalContainerTag { ContainerType = originalType, Priority = true });
         placement.Add(new PreferredContainerItem("Item", preferredType));
         placement.LoadOnce();
 
-        string container = location.ChooseContainerType();
+        string container = location.ChooseBestContainerType();
 
         Assert.Equal(originalType, container);
-    }
-
-    [Fact]
-    public void ChooseContainerType_ReplacesPrioritizedOriginalContainerWhenNoModify()
-    {
-        string originalType = RegisterContainer("Original", modifyInPlace: false);
-        string preferredType = RegisterContainer("Preferred");
-        TestContainerLocation location = new("WithoutOriginal") { ForceDefaultContainer = false };
-        Placement placement = location.Wrap();
-        placement.AddTag(
-            new OriginalContainerTag { ContainerType = originalType, Priority = true }
-        );
-        placement.Add(new PreferredContainerItem("Item", preferredType));
-        placement.LoadOnce();
-
-        string container = location.ChooseContainerType();
-
-        Assert.Equal(preferredType, container);
     }
 
     [Fact]
@@ -90,7 +70,7 @@ public sealed class ContainerLocationTests : IDisposable
         placement.Add(new PreferredContainerItem("Item", preferredType));
         placement.LoadOnce();
 
-        string container = location.ChooseContainerType();
+        string container = location.ChooseBestContainerType();
 
         Assert.Equal(preferredType, container);
     }
@@ -104,7 +84,7 @@ public sealed class ContainerLocationTests : IDisposable
         placement.Add(new PreferredContainerItem("Item", preferredType));
         placement.LoadOnce();
 
-        string container = location.ChooseContainerType();
+        string container = location.ChooseBestContainerType();
 
         Assert.Equal(preferredType, container);
     }
@@ -121,11 +101,11 @@ public sealed class ContainerLocationTests : IDisposable
         TestContainerLocation location = new("NeedsPay") { ForceDefaultContainer = false };
         MutablePlacement placement = (MutablePlacement)location.Wrap();
         placement.Cost = new TestCost();
-        placement.AddTag(new OriginalContainerTag { ContainerType = forcedType, Force = true });
+        location.AddTag(new OriginalContainerTag { ContainerType = forcedType, Force = true });
         placement.Add(new PreferredContainerItem("Item", fallbackType));
         placement.LoadOnce();
 
-        string container = location.ChooseContainerType();
+        string container = location.ChooseBestContainerType();
         bool replaced = location.WillBeReplaced();
 
         Assert.Equal(forcedType, container);
@@ -138,7 +118,7 @@ public sealed class ContainerLocationTests : IDisposable
         TestContainerLocation location = new("Test");
         location.AddTag(new OriginalContainerTag { ContainerType = preferredType });
 
-        string container = location.ChooseContainerType();
+        string container = location.ChooseBestContainerType();
         Assert.Equal(preferredType, container);
     }
 
@@ -147,44 +127,139 @@ public sealed class ContainerLocationTests : IDisposable
     {
         TestContainerLocation location = new("Test");
 
-        string container = location.ChooseContainerType();
+        string container = location.ChooseBestContainerType();
         Assert.Equal(host.ContainerRegistry.DefaultSingleItemContainer.Name, container);
     }
 
     [Fact]
-    public void GetOriginalContainerType_ReturnsOriginalContainerTypeWhenSpecified()
+    public void OriginalContainerType_ReturnsOriginalContainerTypeWhenSpecified()
     {
         string originalType = "OriginalType";
         TestContainerLocation location = new("TestLocation");
         location.AddTag(new OriginalContainerTag { ContainerType = originalType });
 
-        string? result = location.GetOriginalContainerType();
+        string? result = location.OriginalContainerType;
 
         Assert.Equal(originalType, result);
     }
 
     [Fact]
-    public void GetOriginalContainerType_ReturnsNullWhenNoOriginalContainerSpecified()
+    public void OriginalContainerType_ReturnsNullWhenNoOriginalContainerSpecified()
     {
         TestContainerLocation location = new("TestLocation");
 
-        string? result = location.GetOriginalContainerType();
+        string? result = location.OriginalContainerType;
 
         Assert.Null(result);
     }
 
     [Fact]
-    public void GetOriginalContainerType_ReturnsOriginalContainerTypeFromPlacementTags()
+    public void ChooseContainerType_MultiItemPlacementUsesMultiItemContainer()
     {
-        string originalType = "OriginalTypeFromPlacement";
-        TestContainerLocation location = new("TestLocation");
+        TestContainerLocation location = new("MultiItem") { ForceDefaultContainer = false };
         Placement placement = location.Wrap();
-        placement.AddTag(new OriginalContainerTag { ContainerType = originalType });
+        placement.Add(new DebugItem() { Name = "Item1" });
+        placement.Add(new DebugItem() { Name = "Item2" });
         placement.LoadOnce();
 
-        string? result = location.GetOriginalContainerType();
+        string container = location.ChooseBestContainerType();
 
-        Assert.Equal(originalType, result);
+        Assert.Equal(registry.DefaultMultiItemContainer.Name, container);
+    }
+
+    [Fact]
+    public void ChooseContainerType_UnsupportedItemPreferredContainerFallsBack()
+    {
+        string unsupportedType = RegisterContainer("UnsupportedContainer");
+        TestContainerLocation location = new("UnsupportedItemPreferred")
+        {
+            ForceDefaultContainer = false,
+        };
+        location.Disallow(unsupportedType);
+        Placement placement = location.Wrap();
+        placement.Add(new PreferredContainerItem("Item", unsupportedType));
+        placement.LoadOnce();
+
+        string container = location.ChooseBestContainerType();
+
+        Assert.Equal(registry.DefaultSingleItemContainer.Name, container);
+    }
+
+    [Fact]
+    public void ChooseContainerType_OriginalContainerLowPriorityNotSelected()
+    {
+        string lowPriorityType = RegisterContainer("LowPriorityContainer");
+        TestContainerLocation location = new("LowPriority") { ForceDefaultContainer = false };
+        Placement placement = location.Wrap();
+        location.AddTag(
+            new OriginalContainerTag { ContainerType = lowPriorityType, LowPriority = true }
+        );
+        placement.Add(new DebugItem() { Name = "Item" });
+        placement.LoadOnce();
+
+        string container = location.ChooseBestContainerType();
+
+        Assert.Equal(registry.DefaultSingleItemContainer.Name, container);
+    }
+
+    [Fact]
+    public void ChooseContainerType_OriginalContainerMissingCapabilitiesNotSelectedEvenIfPriority()
+    {
+        string originalType = RegisterContainer(
+            "OriginalContainer",
+            instantiate: true,
+            capabilities: ContainerCapabilities.None
+        );
+        string fallbackType = RegisterContainer("Fallback");
+        TestContainerLocation location = new("MissingCapabilities")
+        {
+            ForceDefaultContainer = false,
+        };
+        Placement placement = location.Wrap();
+        location.AddTag(new OriginalContainerTag { ContainerType = originalType, Priority = true });
+        location.AddTag(
+            new RequiredCapabilitiesTag { RequestedCapabilities = ContainerCapabilities.PayCosts }
+        );
+
+        placement.Add(new PreferredContainerItem("Item", fallbackType));
+        placement.LoadOnce();
+
+        string container = location.ChooseBestContainerType();
+
+        Assert.Equal(fallbackType, container);
+    }
+
+    [Fact]
+    public void ChooseContainerType_NoValidContainersAvailable()
+    {
+        string unsupportedType1 = RegisterContainer("Unsupported1");
+        string unsupportedType2 = RegisterContainer("Unsupported2");
+        TestContainerLocation location = new("NoValid") { ForceDefaultContainer = false };
+        location.Disallow(unsupportedType1);
+        location.Disallow(unsupportedType2);
+        Placement placement = location.Wrap();
+        placement.Add(new PreferredContainerItem("Item1", unsupportedType1));
+        placement.Add(new PreferredContainerItem("Item2", unsupportedType2));
+        placement.LoadOnce();
+
+        string container = location.ChooseBestContainerType();
+
+        Assert.Equal(registry.DefaultSingleItemContainer.Name, container);
+    }
+
+    [Fact]
+    public void ChooseContainerType_EmptyPlacementAndTags_ReturnsDefaultSingleItemContainer()
+    {
+        TestContainerLocation location = new("EmptyPlacementAndTags")
+        {
+            ForceDefaultContainer = false,
+        };
+        Placement placement = location.Wrap();
+        placement.LoadOnce();
+
+        string container = location.ChooseBestContainerType();
+
+        Assert.Equal(registry.DefaultSingleItemContainer.Name, container);
     }
 
     private string RegisterContainer(
