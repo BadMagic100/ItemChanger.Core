@@ -3,7 +3,10 @@
 namespace ItemChanger.Locations;
 
 /// <summary>
-/// Base type for ContainerLocations which support receiving receiving a container at a placement-controlled time and manner.
+/// Base type for ContainerLocations which support receiving receiving a container at a placement-controlled time and manner
+/// in addition to being placed independently and requesting a container at a time of their own choosing.
+/// The classic example from Hollow Knight is CoordinateLocation, which is used to place non-item-granting containers
+/// at shops (e.g. the tablet at Grubfather).
 /// </summary>
 public abstract class PlaceableLocation : ContainerLocation
 {
