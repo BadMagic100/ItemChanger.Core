@@ -10,9 +10,9 @@
       "dest": "api",
       "disableGitFeatures": false,
       "disableDefaultFilter": false,
-	    "properties": {
+      "properties": {
           "TargetFramework": "net10.0"
-	    }
+      }
     }
   ],
   "build": {
