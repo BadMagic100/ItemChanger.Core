@@ -8,8 +8,8 @@ This page serves as an introduction and quick reference of the key abstractions 
 a real @"UnityEngine.GameObject" (e.g. flung money), or may simply represent a saved effect (such as obtaining a spell).
 
 @"ItemChanger.Containers.Container": A container represents a real @"UnityEngine.GameObject" that is able to give items
-by interacting with it. A container definition can do modifications to existing GameObjects, create new
-GameObjects from a template, or both.
+by interacting with it. A container definition can do modifications to existing GameObjects, create new GameObjects from
+a template, or both.
 
 @"ItemChanger.Locations.Location": A location abstractly represents a location in the world. Locations are usually
 associated with a placement, and usually contain information on how to give items placed at the associated placement in
