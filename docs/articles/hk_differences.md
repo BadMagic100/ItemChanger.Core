@@ -1,7 +1,7 @@
 # Key Differences from Hollow Knight ItemChanger
 
 ItemChanger.Core contains a long list of breaking changes which is best captured by the
-[commit history](https://github.com/BadMagic100/ItemChanger.Core/compare/a2bcdd59284ed6aa4e82ca308b4dc23105ccc72c..996c367701622d52f097a7d6f03bd7c7dda26641).
+[commit history](https://github.com/BadMagic100/ItemChanger.Core/compare/a2bcdd59284ed6aa4e82ca308b4dc23105ccc72c..main).
 However, there are a few main themes of changes worth noting for developers familiar with Hollow Knight ItemChanger
 (HKIC).
 

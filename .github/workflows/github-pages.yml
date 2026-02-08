@@ -8,6 +8,7 @@ permissions:
   actions: read
   pages: write
   id-token: write
+  packages: read
 
 concurrency:
   group: pages
@@ -30,12 +31,14 @@ jobs:
         with:
           dotnet-version: 10.x
 
-      - name: Build
-        run: dotnet build -c Release
+      - name: Install docfx nightly
+        run: ./install-docfx-prerelease.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: DocFX build
         working-directory: docs
-        run: dnx docfx --yes
+        run: docfx
         continue-on-error: false
 
       - name: Upload assets
