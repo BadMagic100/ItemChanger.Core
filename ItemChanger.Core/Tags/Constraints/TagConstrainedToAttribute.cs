@@ -10,13 +10,20 @@ namespace ItemChanger.Tags.Constraints;
 /// <br/>If the tag has multiple copies of the attribute, it can be placed on any of the specified types. The attribute is not inherited.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-public class TagConstrainedToAttribute<T> : Attribute
-    where T : TaggableObject
+public abstract class TagConstrainedToAttribute : Attribute
 {
     /// <summary>
     /// The type of object that the tag is constrained to
     /// </summary>
-    public Type TaggableObjectType => typeof(T);
+    public abstract Type TaggableObjectType { get; }
+}
+
+/// <inheritdoc/>
+public class TagConstrainedToAttribute<T> : TagConstrainedToAttribute
+    where T : TaggableObject
+{
+    /// <inheritdoc/>
+    public override Type TaggableObjectType => typeof(T);
 }
 
 /// <summary>

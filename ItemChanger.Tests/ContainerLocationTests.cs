@@ -64,9 +64,7 @@ public sealed class ContainerLocationTests : IDisposable
         TestContainerLocation location = new("WithoutOriginal") { ForceDefaultContainer = false };
         location.Disallow(originalType);
         Placement placement = location.Wrap();
-        placement.AddTag(
-            new OriginalContainerTag { ContainerType = originalType, Priority = true }
-        );
+        location.AddTag(new OriginalContainerTag { ContainerType = originalType, Priority = true });
         placement.Add(new PreferredContainerItem("Item", preferredType));
         placement.LoadOnce();
 

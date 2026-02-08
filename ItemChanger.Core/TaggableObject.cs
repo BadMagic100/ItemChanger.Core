@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using ItemChanger.Serialization.Converters;
 using ItemChanger.Tags;
+using ItemChanger.Tags.Constraints;
 using Newtonsoft.Json;
 
 namespace ItemChanger;
@@ -69,6 +72,7 @@ public class TaggableObject
     {
         tags ??= [];
         T t = new();
+        CheckTagConstraints(t);
         if (_tagsLoaded)
         {
             t.LoadOnce(this);
@@ -84,6 +88,7 @@ public class TaggableObject
     public void AddTag(Tag t)
     {
         tags ??= [];
+        CheckTagConstraints(t);
         if (_tagsLoaded)
         {
             t.LoadOnce(this);
@@ -98,15 +103,15 @@ public class TaggableObject
     public void AddTags(IEnumerable<Tag> ts)
     {
         tags ??= [];
-        if (_tagsLoaded)
+        foreach (Tag t in ts)
         {
-            foreach (Tag t in ts)
+            CheckTagConstraints(t);
+            if (_tagsLoaded)
             {
                 t.LoadOnce(this);
             }
+            tags.Add(t);
         }
-
-        tags.AddRange(ts);
     }
 
     /// <summary>
@@ -167,5 +172,34 @@ public class TaggableObject
             }
         }
         tags = tags?.Where(t => t is not T)?.ToList() ?? [];
+    }
+
+    private void CheckTagConstraints(Tag t)
+    {
+        Type runtimeType = GetType();
+        Type tagType = t.GetType();
+        List<TagConstrainedToAttribute> attributes =
+        [
+            .. tagType.GetCustomAttributes<TagConstrainedToAttribute>(false),
+        ];
+        if (attributes.Count == 0)
+        {
+            return;
+        }
+        bool valid = false;
+        foreach (TagConstrainedToAttribute attribute in attributes)
+        {
+            if (attribute.TaggableObjectType.IsAssignableFrom(runtimeType))
+            {
+                valid = true;
+                break;
+            }
+        }
+        if (!valid)
+        {
+            throw new ArgumentException(
+                $"No constraint of tag {tagType.FullName} was satisfied by {runtimeType.FullName}"
+            );
+        }
     }
 }
