@@ -209,14 +209,16 @@ public class TaggableObject
 /// </summary>
 public static class FluentTaggingExtensions
 {
-    extension<TObject>(TObject self) where TObject : TaggableObject
+    extension<TObject>(TObject self)
+        where TObject : TaggableObject
     {
         /// <summary>
         /// Adds a tag of the specified type to the current object and returns the object for method chaining.
         /// </summary>
         /// <typeparam name="TTag">The type of tag to add. Must derive from Tag and have a parameterless constructor.</typeparam>
         /// <returns>The current object with the specified tag added.</returns>
-        public TObject WithTag<TTag>() where TTag : Tag, new()
+        public TObject WithTag<TTag>()
+            where TTag : Tag, new()
         {
             self.AddTag<TTag>();
             return self;
