@@ -203,3 +203,34 @@ public class TaggableObject
         }
     }
 }
+
+/// <summary>
+/// Extension members for fluent-style tagging of <see cref="TaggableObject"/>s.
+/// </summary>
+public static class FluentTaggingExtensions
+{
+    extension<TObject>(TObject self) where TObject : TaggableObject
+    {
+        /// <summary>
+        /// Adds a tag of the specified type to the current object and returns the object for method chaining.
+        /// </summary>
+        /// <typeparam name="TTag">The type of tag to add. Must derive from Tag and have a parameterless constructor.</typeparam>
+        /// <returns>The current object with the specified tag added.</returns>
+        public TObject WithTag<TTag>() where TTag : Tag, new()
+        {
+            self.AddTag<TTag>();
+            return self;
+        }
+
+        /// <summary>
+        /// Adds the specified tag to the current object and returns the updated object.
+        /// </summary>
+        /// <param name="tag">The tag to add to the object. Cannot be null.</param>
+        /// <returns>The current object with the specified tag added.</returns>
+        public TObject WithTag(Tag tag)
+        {
+            self.AddTag(tag);
+            return self;
+        }
+    }
+}
