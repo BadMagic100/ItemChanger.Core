@@ -4,7 +4,7 @@ using ItemChanger.Events.Args;
 using ItemChanger.Items;
 using ItemChanger.Tags;
 
-namespace ItemChanger.Tests;
+namespace ItemChanger.Tests.Tags;
 
 public sealed class ItemChainTagTests
 {

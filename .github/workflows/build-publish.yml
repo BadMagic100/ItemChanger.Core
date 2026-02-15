@@ -26,6 +26,8 @@ jobs:
         run: dotnet build -c Release
       - name: Test
         run: dotnet test -c Release --verbosity normal
+        env:
+          SNAPSHOOTER_STRICT_MODE: "true"
       - name: Pack
         run: dotnet pack -o nuget/
       - name: Get Version

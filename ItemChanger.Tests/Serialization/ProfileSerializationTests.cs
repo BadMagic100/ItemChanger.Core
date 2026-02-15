@@ -9,7 +9,7 @@ using ItemChanger.Tests.Fixtures;
 using Newtonsoft.Json.Linq;
 using Snapshooter.Xunit3;
 
-namespace ItemChanger.Tests;
+namespace ItemChanger.Tests.Serialization;
 
 [Collection(RequiresHostCollection.NAME)]
 public class ProfileSerializationTests : IDisposable

@@ -7,7 +7,7 @@ using ItemChanger.Placements;
 using ItemChanger.Tags;
 using ItemChanger.Tests.Fixtures;
 
-namespace ItemChanger.Tests;
+namespace ItemChanger.Tests.Locations;
 
 [Collection(RequiresHostCollection.NAME)]
 public sealed class ContainerLocationTests : IDisposable

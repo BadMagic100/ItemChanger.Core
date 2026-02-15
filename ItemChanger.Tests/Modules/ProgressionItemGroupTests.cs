@@ -6,7 +6,7 @@ using ItemChanger.Placements;
 using ItemChanger.Tags;
 using ItemChanger.Tests.Fixtures;
 
-namespace ItemChanger.Tests;
+namespace ItemChanger.Tests.Modules;
 
 [Collection(RequiresHostCollection.NAME)]
 public class ProgressionItemGroupTests : IDisposable
