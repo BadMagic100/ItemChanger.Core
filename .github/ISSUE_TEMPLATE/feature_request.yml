@@ -1,0 +1,64 @@
+name: Feature Request
+description: Propose a new feature or improvement for ItemChanger
+title: "[Feature Request]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## User Story
+        Please frame your feature request as a user story ("As a <persona>, I want <goal>, so that <reason>")
+        to help understand who would benefit and why.
+
+  - type: dropdown
+    id: persona
+    attributes:
+      label: Persona
+      description: "Who would primarily benefit from this feature? (Complete: 'As a...')"
+      options:
+        - End User - Anyone using ItemChanger to modify a game via a host
+        - Host Implementer - A developer integrating ItemChanger into a game
+        - Project Maintainer - The maintainer of ItemChanger
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: "What do you want to accomplish? (Complete: 'I want...')"
+      placeholder: "e.g., a method to determine which container will be selected for a location"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Reason
+      description: "Why is this important? What value does it provide? (Complete: 'so that...')"
+      placeholder: "e.g., actions can be taken based on the selected container"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Solution
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed solution to achieve the goal above
+      placeholder: Explain how you envision this feature working
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: Describe any alternatives you've thought about
+    validations:
+      required: false
