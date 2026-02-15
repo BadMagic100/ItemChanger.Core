@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using ItemChanger.Logging;
 using ItemChanger.Serialization.Converters;
 using Newtonsoft.Json;
@@ -15,6 +16,7 @@ namespace ItemChanger.Modules;
 public class ModuleCollection : IEnumerable<Module>
 {
     private readonly List<Module> modules;
+    private readonly HashSet<Type> singletonTypes;
 
     /// <inheritdoc/>
     public int Count => modules.Count;
@@ -22,6 +24,7 @@ public class ModuleCollection : IEnumerable<Module>
     internal ModuleCollection()
     {
         this.modules = [];
+        this.singletonTypes = [];
     }
 
     /// <summary>
@@ -61,23 +64,26 @@ public class ModuleCollection : IEnumerable<Module>
             throw new ArgumentNullException(nameof(instance));
         }
 
-        if (instance.IsSingleton && Get<T>() != null)
+        if (GetRegisteredSingletonType(instance) is Type sing)
         {
-            LoggerProxy.LogError(
-                $"Attempted to add another instance of singleton module {instance.Name}"
-            );
-        }
-        else
-        {
-            modules.Add(instance);
-            if (
-                ItemChangerHost.Singleton.ActiveProfile != null
-                && ItemChangerHost.Singleton.ActiveProfile.State
-                    >= ItemChangerProfile.LoadState.ModuleLoadCompleted
-            )
+            if (singletonTypes.Contains(sing))
             {
-                instance.LoadOnce();
+                LoggerProxy.LogError(
+                    $"Attempted to add another instance of singleton module typed {sing}"
+                );
+                return instance;
             }
+            singletonTypes.Add(sing);
+        }
+
+        modules.Add(instance);
+        if (
+            ItemChangerHost.Singleton.ActiveProfile != null
+            && ItemChangerHost.Singleton.ActiveProfile.State
+                >= ItemChangerProfile.LoadState.ModuleLoadCompleted
+        )
+        {
+            instance.LoadOnce();
         }
 
         return instance;
@@ -171,55 +177,20 @@ public class ModuleCollection : IEnumerable<Module>
     /// </summary>
     public void Remove(Module m)
     {
-        if (
-            modules.Remove(m)
-            && ItemChangerHost.Singleton.ActiveProfile != null
-            && ItemChangerHost.Singleton.ActiveProfile.State
-                >= ItemChangerProfile.LoadState.ModuleLoadCompleted
-        )
+        if (modules.Remove(m))
         {
-            m.UnloadOnce();
-        }
-    }
-
-    /// <summary>
-    /// Removes the first module of type <typeparamref name="T"/>.
-    /// </summary>
-    public void Remove<T>()
-    {
-        if (modules.OfType<T>().FirstOrDefault() is Module m)
-        {
-            Remove(m);
-        }
-    }
-
-    /// <summary>
-    /// Removes all modules with the given type.
-    /// </summary>
-    public void Remove(Type T)
-    {
-        if (
-            ItemChangerHost.Singleton.ActiveProfile != null
-            && ItemChangerHost.Singleton.ActiveProfile.State
-                >= ItemChangerProfile.LoadState.ModuleLoadCompleted
-        )
-        {
-            foreach (Module m in modules.Where(m => m.GetType() == T))
+            if (GetRegisteredSingletonType(m) is Type sing)
+            {
+                singletonTypes.Remove(sing);
+            }
+            if (
+                ItemChangerHost.Singleton.ActiveProfile != null
+                && ItemChangerHost.Singleton.ActiveProfile.State
+                    >= ItemChangerProfile.LoadState.ModuleLoadCompleted
+            )
             {
                 m.UnloadOnce();
             }
-        }
-        modules.RemoveAll(m => m.GetType() == T);
-    }
-
-    /// <summary>
-    /// Removes the first module with the provided name.
-    /// </summary>
-    public void Remove(string name)
-    {
-        if (modules.FirstOrDefault(m => m.Name == name) is Module m)
-        {
-            Remove(m);
         }
     }
 
@@ -227,4 +198,20 @@ public class ModuleCollection : IEnumerable<Module>
     public IEnumerator<Module> GetEnumerator() => modules.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private static Type? GetRegisteredSingletonType(Module m)
+    {
+        Type? moduleType = m.GetType();
+        while (moduleType != null)
+        {
+            SingletonModuleAttribute? attr =
+                moduleType.GetCustomAttribute<SingletonModuleAttribute>(false);
+            if (attr != null)
+            {
+                return moduleType;
+            }
+            moduleType = moduleType.BaseType;
+        }
+        return null;
+    }
 }
