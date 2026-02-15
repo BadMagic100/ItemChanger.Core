@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         ## User Story
-        Please frame your feature request as a user story ("As a <persona>, I want <goal>, so that <reason>")
+        Please frame your feature request as a user story ("As a &lt;persona&gt;, I want &lt;goal&gt;, so that &lt;reason&gt;")
         to help understand who would benefit and why.
 
   - type: dropdown
