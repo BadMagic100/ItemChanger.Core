@@ -14,15 +14,19 @@ body:
     id: persona
     attributes:
       label: Persona
-      description: "Who would primarily benefit from this feature? (Complete: 'As a...')"
+      description: |
+        Who would primarily benefit from this feature? (Complete: 'As a...')
+        - **End User**: Anyone using ItemChanger to modify a game via a host
+        - **Host Implementer**: A developer integrating ItemChanger into a game
+        - **Project Maintainer**: The maintainer of ItemChanger
       options:
-        - End User - Anyone using ItemChanger to modify a game via a host
-        - Host Implementer - A developer integrating ItemChanger into a game
-        - Project Maintainer - The maintainer of ItemChanger
+        - End User
+        - Host Implementer
+        - Project Maintainer
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: goal
     attributes:
       label: Goal
@@ -31,7 +35,7 @@ body:
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: reason
     attributes:
       label: Reason
