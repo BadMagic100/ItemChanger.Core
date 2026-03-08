@@ -61,14 +61,12 @@
     {
       "$type": "ItemChanger.Modules.InteropModule, ItemChanger.Core",
       "Message": "foo",
-      "Properties": {},
-      "Name": "InteropModule"
+      "Properties": {}
     },
     {
       "$type": "ItemChanger.Modules.InteropModule, ItemChanger.Core",
       "Message": "bar",
-      "Properties": {},
-      "Name": "InteropModule"
+      "Properties": {}
     }
   ]
 }

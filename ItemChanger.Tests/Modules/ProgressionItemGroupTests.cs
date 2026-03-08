@@ -280,7 +280,7 @@ public class ProgressionItemGroupTests : IDisposable
         string err = Assert.Single(host.ErrorMessages)!;
         output.WriteLine(err);
         Assert.StartsWith(
-            "Error initializing module ProgressiveItemGroupModule:\n"
+            "Error initializing module of type ItemChanger.Modules.ProgressiveItemGroupModule:\n"
                 + "System.InvalidOperationException: "
                 + "Item Z appears in data of ProgressiveItemGroupModule with GroupID test, "
                 + "but item is not both an entry of the member list and a key of the predecessor lookup.",
@@ -310,7 +310,7 @@ public class ProgressionItemGroupTests : IDisposable
         string err = Assert.Single(host.ErrorMessages)!;
         output.WriteLine(err);
         Assert.StartsWith(
-            "Error initializing module ProgressiveItemGroupModule:\n"
+            "Error initializing module of type ItemChanger.Modules.ProgressiveItemGroupModule:\n"
                 + "System.InvalidOperationException: "
                 + "Item Z appears in data of ProgressiveItemGroupModule with GroupID test, "
                 + "but item is not both an entry of the member list and a key of the predecessor lookup.",
@@ -339,7 +339,7 @@ public class ProgressionItemGroupTests : IDisposable
         string err = Assert.Single(host.ErrorMessages)!;
         output.WriteLine(err);
         Assert.StartsWith(
-            "Error initializing module ProgressiveItemGroupModule:\n"
+            "Error initializing module of type ItemChanger.Modules.ProgressiveItemGroupModule:\n"
                 + "System.InvalidOperationException: "
                 + "Item Z appears in data of ProgressiveItemGroupModule with GroupID test, "
                 + "but item is not both an entry of the member list and a key of the predecessor lookup.",
@@ -369,7 +369,7 @@ public class ProgressionItemGroupTests : IDisposable
         string err = Assert.Single(host.ErrorMessages)!;
         output.WriteLine(err);
         Assert.StartsWith(
-            "Error initializing module ProgressiveItemGroupModule:\n"
+            "Error initializing module of type ItemChanger.Modules.ProgressiveItemGroupModule:\n"
                 + "System.InvalidOperationException: "
                 + "ProgressiveItemGroupTag for Z with GroupID test is missing the transitive predecessor X of Y.",
             err
@@ -396,7 +396,7 @@ public class ProgressionItemGroupTests : IDisposable
         string err = Assert.Single(host.ErrorMessages)!;
         output.WriteLine(err);
         Assert.StartsWith(
-            "Error initializing module ProgressiveItemGroupModule:\n"
+            "Error initializing module of type ItemChanger.Modules.ProgressiveItemGroupModule:\n"
                 + "System.InvalidOperationException: "
                 + "ProgressiveItemGroupTag for X with GroupID test declares X as its own predecessor.",
             err
@@ -424,7 +424,7 @@ public class ProgressionItemGroupTests : IDisposable
         string err = Assert.Single(host.ErrorMessages)!;
         output.WriteLine(err);
         Assert.StartsWith(
-            "Error initializing module ProgressiveItemGroupModule:\n"
+            "Error initializing module of type ItemChanger.Modules.ProgressiveItemGroupModule:\n"
                 + "System.InvalidOperationException: "
                 + "Y is declared as a predecessor of X, but Y occurs after X in the OrderedMemberList for ProgressiveItemGroupModule with GroupID test.",
             err

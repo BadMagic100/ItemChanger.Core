@@ -19,11 +19,6 @@ public abstract class Module
     public bool Loaded { get; private set; }
 
     /// <summary>
-    /// Human-readable name for the module, defaulting to the type name.
-    /// </summary>
-    public string Name => GetType().Name;
-
-    /// <summary>
     /// Method allowing derived classes to perform loading logic. Called once during loading.
     /// </summary>
     protected abstract void DoLoad();
@@ -46,7 +41,7 @@ public abstract class Module
             }
             catch (Exception e)
             {
-                LoggerProxy.LogError($"Error initializing module {Name}:\n{e}");
+                LoggerProxy.LogError($"Error initializing module of type {GetType()}:\n{e}");
             }
             Loaded = true;
         }
@@ -65,7 +60,7 @@ public abstract class Module
             }
             catch (Exception e)
             {
-                LoggerProxy.LogError($"Error unloading module {Name}:\n{e}");
+                LoggerProxy.LogError($"Error unloading module of type {GetType()}:\n{e}");
             }
             Loaded = false;
         }

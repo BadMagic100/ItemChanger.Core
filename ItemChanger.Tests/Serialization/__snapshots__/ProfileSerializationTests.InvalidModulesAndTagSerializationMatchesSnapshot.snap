@@ -47,8 +47,7 @@
   "Modules": [
     {
       "Message": "foo",
-      "Properties": {},
-      "Name": "InteropModule"
+      "Properties": {}
     }
   ]
 }
