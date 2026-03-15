@@ -39,15 +39,32 @@ internal sealed class VectorConverter : JsonConverter
 
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
-        Vector3 vec = (Vector3)value!;
+        float x,
+            y,
+            z = 0;
+        if (value is Vector2 v2)
+        {
+            x = v2.x;
+            y = v2.y;
+        }
+        else if (value is Vector3 v3)
+        {
+            x = v3.x;
+            y = v3.y;
+            z = v3.z;
+        }
+        else
+        {
+            throw new NotSupportedException();
+        }
 
         writer.WriteStartObject();
         writer.WritePropertyName("x");
-        writer.WriteValue(vec.x);
+        writer.WriteValue(x);
         writer.WritePropertyName("y");
-        writer.WriteValue(vec.y);
+        writer.WriteValue(y);
         writer.WritePropertyName("z");
-        writer.WriteValue(vec.z);
+        writer.WriteValue(z);
         writer.WriteEndObject();
     }
 }
