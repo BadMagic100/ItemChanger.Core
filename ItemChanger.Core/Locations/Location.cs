@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using ItemChanger.Enums;
+using ItemChanger.Extensions;
 using ItemChanger.Logging;
 using ItemChanger.Placements;
 using Newtonsoft.Json;
@@ -17,6 +19,8 @@ public abstract class Location : TaggableObject, IFinderCloneable
     /// </summary>
     [JsonIgnore]
     public bool Loaded { get; private set; }
+
+    private List<IDisposable> disposables = [];
 
     /// <summary>
     /// The name of the location. Location names are often, but not always, distinct.
@@ -87,8 +91,21 @@ public abstract class Location : TaggableObject, IFinderCloneable
             {
                 LoggerProxy.LogError($"Error unloading location {Name}:\n{e}");
             }
+            finally
+            {
+                disposables.DisposeAll();
+            }
             Loaded = false;
         }
+    }
+
+    /// <summary>
+    /// Registers a disposable such as a hook subscription for cleanup with the location unloads.
+    /// </summary>
+    /// <param name="disposable">The disposable to register</param>
+    public void Using(IDisposable disposable)
+    {
+        disposables.Add(disposable);
     }
 
     /// <summary>

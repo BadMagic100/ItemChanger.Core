@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using ItemChanger.Containers;
 using ItemChanger.Enums;
 using ItemChanger.Events.Args;
+using ItemChanger.Extensions;
 using ItemChanger.Logging;
 using ItemChanger.Placements;
 using Newtonsoft.Json;
@@ -22,6 +24,8 @@ public abstract class Item : TaggableObject, IFinderCloneable
 
     [JsonProperty("ObtainState")]
     private ObtainState obtainState;
+
+    private List<IDisposable> disposables = [];
 
     /// <summary>
     /// The name of the item. Item names are not guaranteed to be unique.
@@ -81,8 +85,21 @@ public abstract class Item : TaggableObject, IFinderCloneable
             {
                 LoggerProxy.LogError($"Error unloading item {Name}:\n{e}");
             }
+            finally
+            {
+                disposables.DisposeAll();
+            }
             Loaded = false;
         }
+    }
+
+    /// <summary>
+    /// Registers a disposable such as a hook subscription for cleanup with the item unloads.
+    /// </summary>
+    /// <param name="disposable">The disposable to register</param>
+    public void Using(IDisposable disposable)
+    {
+        disposables.Add(disposable);
     }
 
     /// <summary>

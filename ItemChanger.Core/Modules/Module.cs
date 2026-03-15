@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using ItemChanger.Enums;
+using ItemChanger.Extensions;
 using ItemChanger.Logging;
 using Newtonsoft.Json;
 
@@ -17,6 +19,8 @@ public abstract class Module
     /// </summary>
     [JsonIgnore]
     public bool Loaded { get; private set; }
+
+    private List<IDisposable> disposables = [];
 
     /// <summary>
     /// Method allowing derived classes to perform loading logic. Called once during loading.
@@ -62,8 +66,21 @@ public abstract class Module
             {
                 LoggerProxy.LogError($"Error unloading module of type {GetType()}:\n{e}");
             }
+            finally
+            {
+                disposables.DisposeAll();
+            }
             Loaded = false;
         }
+    }
+
+    /// <summary>
+    /// Registers a disposable such as a hook subscription for cleanup with the module unloads.
+    /// </summary>
+    /// <param name="disposable">The disposable to register</param>
+    public void Using(IDisposable disposable)
+    {
+        disposables.Add(disposable);
     }
 
     /// <summary>

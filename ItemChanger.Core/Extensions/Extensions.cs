@@ -126,4 +126,13 @@ public static class Extensions
 
         return uiname.ToString();
     }
+
+    internal static void DisposeAll(this ICollection<IDisposable> disposables)
+    {
+        foreach (IDisposable disposable in disposables)
+        {
+            disposable.Dispose();
+        }
+        disposables.Clear();
+    }
 }

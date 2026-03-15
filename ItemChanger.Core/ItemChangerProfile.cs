@@ -252,7 +252,7 @@ public class ItemChangerProfile : IDisposable
         State = LoadState.PlacementsLoadCompleted;
         foreach (Placement placement in placements.Values)
         {
-            placement.Unload();
+            placement.UnloadOnce();
         }
         State = LoadState.PlacementsLoadStarted;
 
@@ -368,7 +368,7 @@ public class ItemChangerProfile : IDisposable
     {
         if (State >= LoadState.PlacementsLoadCompleted)
         {
-            placement.Unload();
+            placement.UnloadOnce();
         }
     }
 

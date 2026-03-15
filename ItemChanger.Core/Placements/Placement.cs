@@ -4,6 +4,7 @@ using System.Linq;
 using ItemChanger.Containers;
 using ItemChanger.Enums;
 using ItemChanger.Events.Args;
+using ItemChanger.Extensions;
 using ItemChanger.Items;
 using ItemChanger.Logging;
 using ItemChanger.Tags;
@@ -24,6 +25,8 @@ public abstract class Placement(string name) : TaggableObject
     /// </summary>
     [JsonIgnore]
     public bool Loaded { get; private set; }
+
+    private List<IDisposable> disposables = [];
 
     /// <summary>
     /// The name of the placement. Placement names are enforced to be unique.
@@ -198,7 +201,7 @@ public abstract class Placement(string name) : TaggableObject
     /// Unloads the placement. If the placement is not loaded, does nothing. Typically called when unloading a profile.
     /// <br/>Execution order is (modules unload -> placement tags unload -> items unload -> placements unload)
     /// </summary>
-    public void Unload()
+    public void UnloadOnce()
     {
         if (Loaded)
         {
@@ -216,8 +219,21 @@ public abstract class Placement(string name) : TaggableObject
             {
                 LoggerProxy.LogError($"Error unloading placement {Name}:\n{e}");
             }
+            finally
+            {
+                disposables.DisposeAll();
+            }
             Loaded = false;
         }
+    }
+
+    /// <summary>
+    /// Registers a disposable such as a hook subscription for cleanup with the placement unloads.
+    /// </summary>
+    /// <param name="disposable">The disposable to register</param>
+    public void Using(IDisposable disposable)
+    {
+        disposables.Add(disposable);
     }
 
     /// <summary>
