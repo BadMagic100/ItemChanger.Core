@@ -7,7 +7,6 @@ using ItemChanger.Containers;
 using ItemChanger.Enums;
 using ItemChanger.Events;
 using ItemChanger.Items;
-using ItemChanger.Logging;
 using ItemChanger.Modules;
 using ItemChanger.Placements;
 using ItemChanger.Serialization;
@@ -400,14 +399,7 @@ public class ItemChangerProfile : IDisposable
         host.PrepareEvents(lifecycleInvoker, gameInvoker);
         foreach (Container c in host.ContainerRegistry)
         {
-            try
-            {
-                c.Load();
-            }
-            catch (Exception e)
-            {
-                LoggerProxy.LogError($"Error loading container {c.Name}:\n{e}");
-            }
+            c.Load();
         }
 
         lifecycleInvoker.NotifyHooked();
@@ -424,14 +416,7 @@ public class ItemChangerProfile : IDisposable
 
         foreach (Container c in host.ContainerRegistry)
         {
-            try
-            {
-                c.Unload();
-            }
-            catch (Exception e)
-            {
-                LoggerProxy.LogError($"Error unloading container {c.Name}:\n{e}");
-            }
+            c.Unload();
         }
         host.UnhookEvents(lifecycleInvoker, gameInvoker);
         host.GameEvents.Unhook();

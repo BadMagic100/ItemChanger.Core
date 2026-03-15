@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using ItemChanger.Enums;
+using ItemChanger.Extensions;
 using ItemChanger.Logging;
 using Newtonsoft.Json;
 
@@ -15,6 +17,8 @@ public abstract class Tag
     /// </summary>
     [JsonIgnore]
     public bool Loaded { get; private set; }
+
+    private List<IDisposable> disposables = [];
 
     /// <summary>
     /// Method to implement optional loading logic, called once during loading.
@@ -62,8 +66,21 @@ public abstract class Tag
             {
                 LoggerProxy.LogError($"Error unloading {GetType().Name}:\n{e}");
             }
+            finally
+            {
+                disposables.DisposeAll();
+            }
             Loaded = false;
         }
+    }
+
+    /// <summary>
+    /// Registers a disposable such as a hook subscription for cleanup when the tag unloads.
+    /// </summary>
+    /// <param name="disposable">The disposable to register</param>
+    public void Using(IDisposable disposable)
+    {
+        disposables.Add(disposable);
     }
 
     /// <summary>

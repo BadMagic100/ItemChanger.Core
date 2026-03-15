@@ -94,7 +94,7 @@ public abstract class Item : TaggableObject, IFinderCloneable
     }
 
     /// <summary>
-    /// Registers a disposable such as a hook subscription for cleanup with the item unloads.
+    /// Registers a disposable such as a hook subscription for cleanup when the item unloads.
     /// </summary>
     /// <param name="disposable">The disposable to register</param>
     public void Using(IDisposable disposable)

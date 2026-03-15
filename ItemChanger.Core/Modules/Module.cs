@@ -75,7 +75,7 @@ public abstract class Module
     }
 
     /// <summary>
-    /// Registers a disposable such as a hook subscription for cleanup with the module unloads.
+    /// Registers a disposable such as a hook subscription for cleanup when the module unloads.
     /// </summary>
     /// <param name="disposable">The disposable to register</param>
     public void Using(IDisposable disposable)

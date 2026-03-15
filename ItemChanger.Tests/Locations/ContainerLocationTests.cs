@@ -335,9 +335,9 @@ public sealed class ContainerLocationTests : IDisposable
 
         public override uint SupportedCapabilities { get; } = supportedCapabilities;
 
-        protected override void Load() { }
+        protected override void DoLoad() { }
 
-        protected override void Unload() { }
+        protected override void DoUnload() { }
     }
 
     private sealed class TestCost : Cost

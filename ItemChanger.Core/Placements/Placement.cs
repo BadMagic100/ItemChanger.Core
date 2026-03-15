@@ -228,7 +228,7 @@ public abstract class Placement(string name) : TaggableObject
     }
 
     /// <summary>
-    /// Registers a disposable such as a hook subscription for cleanup with the placement unloads.
+    /// Registers a disposable such as a hook subscription for cleanup when the placement unloads.
     /// </summary>
     /// <param name="disposable">The disposable to register</param>
     public void Using(IDisposable disposable)

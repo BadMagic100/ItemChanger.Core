@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ItemChanger.Extensions;
+using ItemChanger.Logging;
 using UnityEngine;
 
 namespace ItemChanger.Containers;
@@ -77,6 +79,8 @@ namespace ItemChanger.Containers;
 /// </example>
 public abstract class Container
 {
+    private List<IDisposable> disposables = [];
+
     /// <summary>
     /// The unique name of the container.
     /// </summary>
@@ -184,10 +188,47 @@ public abstract class Container
     /// <summary>
     /// Hook point to set up global hooks for containers of this type.
     /// </summary>
-    protected internal abstract void Load();
+    protected abstract void DoLoad();
+
+    internal void Load()
+    {
+        try
+        {
+            DoLoad();
+        }
+        catch (Exception e)
+        {
+            LoggerProxy.LogError($"Error loading container {Name}\n{e}");
+        }
+    }
 
     /// <summary>
-    /// Hook point to undo hooks prepared in <see cref="Load"/>
+    /// Hook point to undo hooks prepared in <see cref="DoLoad"/>
     /// </summary>
-    protected internal abstract void Unload();
+    protected abstract void DoUnload();
+
+    internal void Unload()
+    {
+        try
+        {
+            DoUnload();
+        }
+        catch (Exception e)
+        {
+            LoggerProxy.LogError($"Error unloading container {Name}\n{e}");
+        }
+        finally
+        {
+            disposables.DisposeAll();
+        }
+    }
+
+    /// <summary>
+    /// Registers a disposable such as a hook subscription for cleanup when the container unloads.
+    /// </summary>
+    /// <param name="disposable">The disposable to register</param>
+    public void Using(IDisposable disposable)
+    {
+        disposables.Add(disposable);
+    }
 }

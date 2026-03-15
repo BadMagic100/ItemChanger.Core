@@ -8,7 +8,7 @@ internal class FakedContainer : Container
 
     public override uint SupportedCapabilities => uint.MaxValue;
 
-    protected override void Load() { }
+    protected override void DoLoad() { }
 
-    protected override void Unload() { }
+    protected override void DoUnload() { }
 }

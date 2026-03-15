@@ -100,7 +100,7 @@ public abstract class Location : TaggableObject, IFinderCloneable
     }
 
     /// <summary>
-    /// Registers a disposable such as a hook subscription for cleanup with the location unloads.
+    /// Registers a disposable such as a hook subscription for cleanup when the location unloads.
     /// </summary>
     /// <param name="disposable">The disposable to register</param>
     public void Using(IDisposable disposable)
