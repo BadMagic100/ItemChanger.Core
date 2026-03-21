@@ -66,13 +66,12 @@ public class ItemChangerProfile : IDisposable
     }
 
     /// <summary>
-    /// Loads a profile from a stream
+    /// Loads a profile from a stream. The stream will be closed after reading.
     /// </summary>
     /// <param name="host">The associated host</param>
     /// <param name="stream">The stream to read from</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException">The stream doesn't contain a profile.</exception>
     /// <returns>The deserialized profile.</returns>
+    /// <exception cref="ArgumentException">The stream doesn't contain a profile.</exception>
     public static ItemChangerProfile FromStream(ItemChangerHost host, Stream stream)
     {
         ItemChangerProfile? profile = SerializationHelper.DeserializeResource<ItemChangerProfile>(
@@ -83,6 +82,31 @@ public class ItemChangerProfile : IDisposable
             throw new ArgumentException(
                 "The provided stream did not contain a valid profile",
                 nameof(stream)
+            );
+        }
+        profile.AttachHost(host);
+        profile.DoHook();
+        return profile;
+    }
+
+    /// <summary>
+    /// Loads a profile from a StreamReader. It is the caller's responsibility to dispose the StreamReader.
+    /// </summary>
+    /// <param name="host">The associated host</param>
+    /// <param name="reader">The StreamReader to read from</param>
+    /// <returns>The deserialized profile</returns>
+    /// <exception cref="ArgumentException">The stream doesn't contain a profile.</exception>
+    public static ItemChangerProfile FromStream(ItemChangerHost host, StreamReader reader)
+    {
+        ItemChangerProfile? profile =
+            SerializationHelper.Serializer.Deserialize<ItemChangerProfile>(
+                new JsonTextReader(reader)
+            );
+        if (profile == null)
+        {
+            throw new ArgumentException(
+                "The provided StreamReader did not contain a valid profile",
+                nameof(reader)
             );
         }
         profile.AttachHost(host);
@@ -138,12 +162,21 @@ public class ItemChangerProfile : IDisposable
     }
 
     /// <summary>
-    /// Saves the profile to a stream as a JSON blob
+    /// Saves the profile to a stream as a JSON blob. The stream will be closed after writing.
     /// </summary>
     /// <param name="stream">The stream to save to.</param>
     public void ToStream(Stream stream)
     {
         SerializationHelper.Serialize(stream, this);
+    }
+
+    /// <summary>
+    /// Saves the profile to a StreamWriter as a JSON blob. It is the caller's responsibility to dispose the StreamWriter.
+    /// </summary>
+    /// <param name="writer">The StreamWriter to save to.</param>
+    public void ToStream(StreamWriter writer)
+    {
+        SerializationHelper.Serializer.Serialize(writer, this);
     }
 
     /// <summary>

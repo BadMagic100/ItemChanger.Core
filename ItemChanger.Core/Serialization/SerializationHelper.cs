@@ -34,7 +34,8 @@ public static class SerializationHelper
     }
 
     /// <summary>
-    /// Utility to serialize an object with the necessary metadata for polymorphic deserialization
+    /// Utility to serialize an object with the necessary metadata for polymorphic deserialization.
+    /// The stream will be closed after writing.
     /// </summary>
     /// <param name="stream">Stream to serialize to</param>
     /// <param name="o">The object to be serialized</param>
@@ -46,6 +47,7 @@ public static class SerializationHelper
 
     /// <summary>
     /// Utility to deserialize an object polymorphically for use in Finder (typically created from <see cref="Serialize(Stream, object)"/>).
+    /// The stream will be closed after reading.
     /// </summary>
     /// <typeparam name="T">The type to deserialize to</typeparam>
     /// <param name="stream">The stream to read from</param>
