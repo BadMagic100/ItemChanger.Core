@@ -9,12 +9,6 @@ internal class TestLogger : ILogger
 {
     public List<string?> ErrorMessages { get; } = [];
 
-    public void LogError(string? message)
-    {
-        ErrorMessages.Add(message);
-        Console.WriteLine($"[ERROR]: {message}");
-    }
-
     public void LogFine(string? message)
     {
         Console.WriteLine($"[FINE]: {message}");
@@ -25,9 +19,20 @@ internal class TestLogger : ILogger
         Console.WriteLine($"[INFO]: {message}");
     }
 
+    public void LogDebug(string? message)
+    {
+        Console.WriteLine($"[DEBUG]: {message}");
+    }
+
     public void LogWarn(string? message)
     {
         Console.WriteLine($"[WARN]: {message}");
+    }
+
+    public void LogError(string? message)
+    {
+        ErrorMessages.Add(message);
+        Console.WriteLine($"[ERROR]: {message}");
     }
 }
 

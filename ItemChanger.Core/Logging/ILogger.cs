@@ -11,6 +11,11 @@ public interface ILogger
     void LogFine(string? message);
 
     /// <summary>
+    /// Logs debug information.
+    /// </summary>
+    void LogDebug(string? message);
+
+    /// <summary>
     /// Logs high-level informational messages.
     /// </summary>
     void LogInfo(string? message);

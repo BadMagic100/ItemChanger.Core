@@ -9,6 +9,7 @@ internal static class InvokeHelper
 {
     internal static void InvokeList(List<Action> list, [CallerMemberName] string caller = "")
     {
+        LoggerProxy.LogDebug($"Invoking {caller}");
         foreach (Action a in list)
         {
             try
@@ -28,6 +29,7 @@ internal static class InvokeHelper
         [CallerMemberName] string caller = ""
     )
     {
+        LoggerProxy.LogDebug($"Invoking {caller}");
         foreach (Action<T> a in list)
         {
             try
@@ -50,6 +52,7 @@ internal static class InvokeHelper
         [CallerMemberName] string caller = ""
     )
     {
+        LoggerProxy.LogDebug($"Invoking {caller}");
         foreach (Action<T1, T2> a in list)
         {
             try

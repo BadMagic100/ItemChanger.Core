@@ -16,17 +16,22 @@ public class NullLogger : ILogger
     public void LogFine(string? message) { }
 
     /// <summary>
+    /// Ignores debug messages.
+    /// </summary>
+    public void LogDebug(string? message) { }
+
+    /// <summary>
     /// Ignores informational messages.
     /// </summary>
     public void LogInfo(string? message) { }
 
     /// <summary>
-    /// Ignores error messages.
-    /// </summary>
-    public void LogError(string? message) { }
-
-    /// <summary>
     /// Ignores warnings.
     /// </summary>
     public void LogWarn(string? message) { }
+
+    /// <summary>
+    /// Ignores error messages.
+    /// </summary>
+    public void LogError(string? message) { }
 }

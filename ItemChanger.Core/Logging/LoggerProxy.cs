@@ -10,6 +10,11 @@ public static class LoggerProxy
         ItemChangerHost.Singleton.Logger.LogFine(message);
     }
 
+    internal static void LogDebug(string? message)
+    {
+        ItemChangerHost.Singleton.Logger.LogDebug(message);
+    }
+
     internal static void LogInfo(string? message)
     {
         ItemChangerHost.Singleton.Logger.LogInfo(message);
