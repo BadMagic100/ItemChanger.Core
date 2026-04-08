@@ -2,7 +2,7 @@
 
 namespace ItemChanger.Containers;
 
-internal sealed class ContainerInfoComponent : MonoBehaviour
+public sealed class ContainerInfoComponent : MonoBehaviour
 {
     public required ContainerInfo Info { get; init; }
 }
