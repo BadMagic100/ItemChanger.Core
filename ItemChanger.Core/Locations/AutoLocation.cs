@@ -66,7 +66,7 @@ public abstract class AutoLocation : Location
         return new AutoPlacement(Name)
         {
             Location = this,
-            Cost = ImplicitCostTag.GetDefaultCost(this),
+            Cost = DefaultCostTag.GetDefaultCost(this),
         };
     }
 }

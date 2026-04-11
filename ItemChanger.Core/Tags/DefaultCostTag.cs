@@ -10,7 +10,7 @@ namespace ItemChanger.Tags;
 /// A tag which provides a default cost for a location.
 /// </summary>
 [LocationTag]
-public class ImplicitCostTag : Tag
+public class DefaultCostTag : Tag
 {
     /// <summary>
     /// Cost applied when this tag is present.
@@ -40,7 +40,7 @@ public class ImplicitCostTag : Tag
     /// <param name="loc">The location to inspect</param>
     public static Cost? GetDefaultCost(Location loc)
     {
-        List<Cost> costs = [.. loc.GetTags<ImplicitCostTag>().Select(c => c.Cost.DeepClone()!)];
+        List<Cost> costs = [.. loc.GetTags<DefaultCostTag>().Select(c => c.Cost.DeepClone()!)];
         return costs.Count switch
         {
             0 => null,

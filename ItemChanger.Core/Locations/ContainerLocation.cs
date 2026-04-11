@@ -57,7 +57,7 @@ public abstract class ContainerLocation : Location
         return new MutablePlacement(Name)
         {
             Location = this,
-            Cost = ImplicitCostTag.GetDefaultCost(this),
+            Cost = DefaultCostTag.GetDefaultCost(this),
         };
     }
 
