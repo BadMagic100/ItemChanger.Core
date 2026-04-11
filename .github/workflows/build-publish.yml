@@ -6,6 +6,10 @@ on:
     tags: ["v*.*.*"]
   pull_request:
     branches: ["main"]
+  schedule:
+    - cron: 0 0 * * *
+      timezone: America/Los_Angeles
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -53,7 +57,11 @@ jobs:
           archive: false
   publish:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    # runs on tag pushes (real releases) or on a schedule or manually (prereleases)
+    if: |-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || 
+        github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch'
     needs:
       - build
     
