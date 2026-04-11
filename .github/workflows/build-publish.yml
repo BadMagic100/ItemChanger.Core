@@ -3,6 +3,7 @@ name: Build
 on:
   push:
     branches: ["main"]
+    tags: ["v*.*.*"]
   pull_request:
     branches: ["main"]
 
@@ -13,13 +14,21 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.x
+      - name: Restore Tools
+        run: dotnet tool restore
       - name: Restore Dependencies
         run: dotnet restore
       - name: Build
@@ -33,28 +42,44 @@ jobs:
       - name: Get Version
         id: version
         run: |-
-          VERSION=$(dotnet build ItemChanger.Core/ItemChanger.Core.csproj -getProperty:PackageVersion)
+          VERSION=$(dotnet minver --tag-prefix v)
           echo Version is $VERSION
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-      # attempts to publish to NuGet on any push to main. Skips already-published versions.
+      - name: Upload artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          path: nuget/*.nupkg
+          archive: false
+  publish:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build
+    
+    steps:
+      - name: Download
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: nuget/
       - name: NuGet Login
         id: login
-        if: github.event_name == 'push'
         uses: NuGet/login@v1
         with:
           user: ${{ secrets.NUGET_USER }}
       - name: Publish NuGet
         id: publish
-        if: github.event_name == 'push'
         run: |-
           dotnet nuget push nuget/*.nupkg \
             --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json
         continue-on-error: true
       - name: Create Release
-        if: github.event_name == 'push' && steps.publish.outcome == 'success'
+        if: steps.publish.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
           draft: false
+          prerelease: ${{ contains(needs.build.outputs.version, '-') }}
           generate_release_notes: true
-          tag_name: v${{ steps.version.outputs.version }}
+          tag_name: v${{ needs.build.outputs.version }}
