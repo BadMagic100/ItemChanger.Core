@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ItemChanger.Containers;
 using ItemChanger.Costs;
@@ -13,60 +14,70 @@ using UnityEngine.SceneManagement;
 namespace ItemChanger.Placements;
 
 /// <summary>
-/// Placement which handles switching between two possible locations according to a test.
+/// Placement which handles switching between several possible locations according to a selector.
 /// </summary>
-public class DualPlacement(string Name)
+public class MultiPlacement<T>(string Name)
     : Placement(Name),
         IContainerPlacement,
         ISingleCostPlacement,
         IPrimaryLocationPlacement
+    where T : notnull, Enum
 {
-    /// <summary>
-    /// Location used when <see cref="Test"/> evaluates to true.
-    /// </summary>
-    public required Location TrueLocation { get; init; }
+    private T? cachedValue;
 
     /// <summary>
-    /// Location used when <see cref="Test"/> evaluates to false.
+    /// Selector determining which location is currently active
     /// </summary>
-    public required Location FalseLocation { get; init; }
+    public required IValueProvider<T> Selector { get; init; }
 
     /// <summary>
-    /// Test determining which location is active.
+    /// An exhaustive lookup of locations for all possible values of <see cref="Selector"/>
     /// </summary>
-    public required IValueProvider<bool> Test { get; init; }
+    public required IReadOnlyDictionary<T, Location> Locations { get; init; }
 
-    private bool cachedValue;
+    /// <summary>
+    /// The currently selected location. Attempting to read this before load will produce undefined behavior.
+    /// </summary>
+    /// <see cref="Selector"/>
+    [JsonIgnore]
+    public Location Location
+    {
+        get
+        {
+            cachedValue ??= Selector.Value;
+            return Locations[cachedValue];
+        }
+    }
 
     /// <inheritdoc/>
     public override string MainContainerType
     {
         get
         {
-            ContainerLocation? cl = cachedValue
-                ? TrueLocation as ContainerLocation
-                : FalseLocation as ContainerLocation;
+            ContainerLocation? cl = Location as ContainerLocation;
             return cl?.ChooseBestContainerType() ?? ContainerRegistry.UnknownContainerType;
         }
     }
 
     /// <summary>
-    /// Gets the location currently selected by <see cref="Test"/>.
-    /// </summary>
-    [JsonIgnore]
-    public Location Location => cachedValue ? TrueLocation : FalseLocation;
-
-    /// <summary>
-    /// Optional cost shared across both locations.
+    /// Optional cost shared across all locations.
     /// </summary>
     public Cost? Cost { get; set; }
 
     /// <inheritdoc/>
     protected override void DoLoad()
     {
-        cachedValue = Test.Value;
-        TrueLocation.Placement = this;
-        FalseLocation.Placement = this;
+        if (!Enum.GetValues(typeof(T)).OfType<T>().All(Locations.ContainsKey))
+        {
+            throw new InvalidOperationException(
+                $"{nameof(Locations)} is not exhaustive over the values of {typeof(T)}"
+            );
+        }
+        cachedValue = Selector.Value;
+        foreach (Location location in Locations.Values)
+        {
+            location.Placement = this;
+        }
         Location.LoadOnce();
         Cost?.LoadOnce();
         ItemChangerHost.Singleton.GameEvents.BeforeNextSceneLoaded += BeforeNextSceneLoaded;
@@ -82,8 +93,8 @@ public class DualPlacement(string Name)
 
     private void BeforeNextSceneLoaded(BeforeSceneLoadedEventArgs _)
     {
-        bool value = Test.Value;
-        if (cachedValue != value)
+        T value = Selector.Value;
+        if (!value.Equals(cachedValue))
         {
             Location.UnloadOnce();
             cachedValue = value;
@@ -128,7 +139,6 @@ public class DualPlacement(string Name)
     public override IEnumerable<Tag> GetPlacementAndLocationTags()
     {
         return base.GetPlacementAndLocationTags()
-            .Concat(FalseLocation.Tags ?? Enumerable.Empty<Tag>())
-            .Concat(TrueLocation.Tags ?? Enumerable.Empty<Tag>());
+            .Concat(Locations.Values.SelectMany(l => l.Tags ?? Enumerable.Empty<Tag>()));
     }
 }

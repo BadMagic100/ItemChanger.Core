@@ -1,0 +1,51 @@
+﻿{
+  "IReadonlyStringDict": {
+    "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[System.Int32, System.Private.CoreLib]], System.Private.CoreLib",
+    "foo": 1,
+    "bar": 2
+  },
+  "IReadonlyEnumDict": {
+    "$type": "System.Collections.Generic.Dictionary`2[[ItemChanger.Tests.Serialization.Converters.NonStringDictionaryAsArrayResolverTests+ChoiceKeys, ItemChanger.Tests],[System.Int32, System.Private.CoreLib]], System.Private.CoreLib",
+    "$values": [
+      {
+        "Key": "Foo",
+        "Value": 1
+      },
+      {
+        "Key": "Bar",
+        "Value": 2
+      }
+    ]
+  },
+  "IStringDict": {
+    "foo": 1,
+    "bar": 2
+  },
+  "IEnumDict": {
+    "$type": "System.Collections.Generic.Dictionary`2[[ItemChanger.Tests.Serialization.Converters.NonStringDictionaryAsArrayResolverTests+ChoiceKeys, ItemChanger.Tests],[System.Int32, System.Private.CoreLib]], System.Private.CoreLib",
+    "$values": [
+      {
+        "Key": "Foo",
+        "Value": 1
+      },
+      {
+        "Key": "Bar",
+        "Value": 2
+      }
+    ]
+  },
+  "StringDict": {
+    "foo": 1,
+    "bar": 2
+  },
+  "EnumDict": [
+    {
+      "Key": "Foo",
+      "Value": 1
+    },
+    {
+      "Key": "Bar",
+      "Value": 2
+    }
+  ]
+}
