@@ -23,6 +23,7 @@ public static class SerializationHelper
                     DefaultValueHandling = DefaultValueHandling.Include,
                     Formatting = Formatting.Indented,
                     TypeNameHandling = TypeNameHandling.Auto,
+                    ContractResolver = new NonStringDictionaryAsArrayResolver(),
                 };
 
                 js.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
@@ -39,7 +40,7 @@ public static class SerializationHelper
     /// </summary>
     /// <param name="stream">Stream to serialize to</param>
     /// <param name="o">The object to be serialized</param>
-    public static void Serialize(Stream stream, object o)
+    public static void Serialize(Stream stream, object? o)
     {
         using StreamWriter sw = new(stream);
         Serializer.Serialize(sw, o);
