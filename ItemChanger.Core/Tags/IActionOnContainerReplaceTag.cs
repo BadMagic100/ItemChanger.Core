@@ -1,4 +1,5 @@
-﻿using UnityEngine.SceneManagement;
+﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ItemChanger.Tags;
 
@@ -11,5 +12,6 @@ public interface IActionOnContainerReplaceTag
     /// Action to take when the container is replace.
     /// </summary>
     /// <param name="scene">The scene the event is occurring in.</param>
-    public void OnReplace(Scene scene);
+    /// <param name="newContainer">The newly created container GameObject.</param>
+    public void OnReplace(Scene scene, GameObject newContainer);
 }

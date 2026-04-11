@@ -66,7 +66,12 @@ public class ObjectLocation : ContainerLocation, IReplaceableLocation
     /// <summary>
     /// Replaces the target object with a new container.
     /// </summary>
-    public virtual void ReplaceWithContainer(Scene scene, Container container, ContainerInfo info)
+    /// <returns>The newly created container GameObject</returns>
+    public virtual GameObject ReplaceWithContainer(
+        Scene scene,
+        Container container,
+        ContainerInfo info
+    )
     {
         GameObject target = FindObject(scene, ObjectName);
         GameObject newContainer = container.GetNewContainer(info);
@@ -74,8 +79,9 @@ public class ObjectLocation : ContainerLocation, IReplaceableLocation
         UnityEngine.Object.Destroy(target);
         foreach (IActionOnContainerReplaceTag tag in GetTags<IActionOnContainerReplaceTag>())
         {
-            tag.OnReplace(scene);
+            tag.OnReplace(scene, newContainer);
         }
+        return newContainer;
     }
 
     /// <summary>

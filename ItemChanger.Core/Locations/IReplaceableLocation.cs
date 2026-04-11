@@ -1,4 +1,5 @@
 ﻿using ItemChanger.Containers;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace ItemChanger.Locations;
@@ -14,6 +15,7 @@ public interface IReplaceableLocation
     /// <param name="scene">The scene to replace the content in</param>
     /// <param name="container">The container to place. Must support instantiate.</param>
     /// <param name="info">The container info to be applied.</param>
+    /// <returns>The newly created container GameObject</returns>
     /// <seealso cref="Container.SupportsInstantiate"/>
-    public void ReplaceWithContainer(Scene scene, Container container, ContainerInfo info);
+    public GameObject ReplaceWithContainer(Scene scene, Container container, ContainerInfo info);
 }

@@ -1,5 +1,6 @@
 ﻿using ItemChanger.Extensions;
 using ItemChanger.Tags.Constraints;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace ItemChanger.Tags;
@@ -16,7 +17,7 @@ public class DestroyOnContainerReplaceTag : Tag, IActionOnContainerReplaceTag
     public required string ObjectPath { get; init; }
 
     /// <inheritdoc/>
-    public void OnReplace(Scene scene)
+    public void OnReplace(Scene scene, GameObject newContainer)
     {
         UnityEngine.Object.Destroy(scene.FindGameObject(ObjectPath));
     }
