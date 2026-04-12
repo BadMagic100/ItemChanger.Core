@@ -98,7 +98,7 @@ public class MultiPlacement<T>(string Name)
 
     /// <summary>
     /// Trigger a re-check of Selector and loads the appropriate location if needed.
-    /// Triggered by default on scene change, but also available for use by subclasses 
+    /// Triggered by default on scene change, but also available for use by subclasses
     /// to be triggered by other events
     /// </summary>
     protected void RefreshLocation()
