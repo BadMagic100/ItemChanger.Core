@@ -93,6 +93,16 @@ public class MultiPlacement<T>(string Name)
 
     private void BeforeNextSceneLoaded(BeforeSceneLoadedEventArgs _)
     {
+        RefreshLocation();
+    }
+
+    /// <summary>
+    /// Trigger a re-check of Selector and loads the appropriate location if needed.
+    /// Triggered by default on scene change, but also available for use by subclasses 
+    /// to be triggered by other events
+    /// </summary>
+    protected void RefreshLocation()
+    {
         T value = Selector.Value;
         if (!value.Equals(cachedValue))
         {
