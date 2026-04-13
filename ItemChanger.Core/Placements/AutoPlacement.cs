@@ -36,12 +36,14 @@ public class AutoPlacement(string Name)
     {
         Location.Placement = this;
         Location.LoadOnce();
+        Cost?.LoadOnce();
     }
 
     /// <inheritdoc/>
     protected override void DoUnload()
     {
         Location.UnloadOnce();
+        Cost?.UnloadOnce();
     }
 
     /// <inheritdoc/>
