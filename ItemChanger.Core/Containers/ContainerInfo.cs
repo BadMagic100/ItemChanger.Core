@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ItemChanger.Costs;
 using ItemChanger.Enums;
@@ -121,6 +122,24 @@ public class ContainerInfo
                         PreviewItems = items,
                     },
         };
+    }
+
+    /// <summary>
+    /// Applies this ContainerInfo to a GameObject.
+    /// </summary>
+    /// <param name="obj">The object to apply the ContainerInfo to</param>
+    /// <exception cref="InvalidOperationException">Thrown if the object already has a ContainerInfo</exception>
+    public void ApplyTo(GameObject obj)
+    {
+        ContainerInfoComponent component = obj.GetComponent<ContainerInfoComponent>();
+        if (component == null)
+        {
+            throw new InvalidOperationException(
+                $"Only one {nameof(ContainerInfo)} may be applied to a given GameObject."
+            );
+        }
+        component = obj.AddComponent<ContainerInfoComponent>();
+        component.Info = this;
     }
 
     /// <summary>

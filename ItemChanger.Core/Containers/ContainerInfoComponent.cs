@@ -8,10 +8,10 @@ namespace ItemChanger.Containers;
 /// to modified objects.
 /// </summary>
 /// <seealso cref="ContainerInfo.FindContainerInfo(GameObject)"/>
-public sealed class ContainerInfoComponent : MonoBehaviour
+internal sealed class ContainerInfoComponent : MonoBehaviour
 {
     /// <summary>
     /// The ContainerInfo to attach
     /// </summary>
-    public required ContainerInfo Info { get; init; }
+    public required ContainerInfo Info { get; set; }
 }
