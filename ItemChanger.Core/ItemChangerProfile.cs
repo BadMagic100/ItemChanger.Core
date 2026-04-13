@@ -74,9 +74,7 @@ public class ItemChangerProfile : IDisposable
     /// <exception cref="ArgumentException">The stream doesn't contain a profile.</exception>
     public static ItemChangerProfile FromStream(ItemChangerHost host, Stream stream)
     {
-        ItemChangerProfile? profile = SerializationHelper.DeserializeResource<ItemChangerProfile>(
-            stream
-        );
+        ItemChangerProfile? profile = SerializationHelper.Deserialize<ItemChangerProfile>(stream);
         if (profile == null)
         {
             throw new ArgumentException(

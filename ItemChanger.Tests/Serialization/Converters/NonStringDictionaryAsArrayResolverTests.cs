@@ -58,7 +58,7 @@ public class NonStringDictionaryAsArrayResolverTests
         byte[] firstSnapshot = write1.ToArray();
 
         using MemoryStream read = new(firstSnapshot);
-        Demo? demo2 = SerializationHelper.DeserializeResource<Demo>(read);
+        Demo? demo2 = SerializationHelper.Deserialize<Demo>(read);
 
         using MemoryStream write2 = new();
         SerializationHelper.Serialize(write2, demo2);

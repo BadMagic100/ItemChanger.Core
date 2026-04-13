@@ -52,7 +52,7 @@ public static class SerializationHelper
     /// </summary>
     /// <typeparam name="T">The type to deserialize to</typeparam>
     /// <param name="stream">The stream to read from</param>
-    public static T? DeserializeResource<T>(Stream stream)
+    public static T? Deserialize<T>(Stream stream)
     {
         using StreamReader sr = new(stream);
         return Serializer.Deserialize<T>(new JsonTextReader(sr));
