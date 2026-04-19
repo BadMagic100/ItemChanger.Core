@@ -8,10 +8,11 @@ using ItemChanger.Serialization;
 namespace ItemChanger.Tags;
 
 /// <summary>
-/// Tag which sets an IWriteableBool when its parent item is given.
-/// <br/>If attached to a location or placement, sets the bool when VisitState.ObtainedAnyItem is first set on the placement.
+/// Tag which sets a writable bool provider when its parent item is given.
+/// If attached to a location or placement, sets the bool when <see cref="VisitState.ObtainedAnyItem"/>
+/// is first set on the placement.
 /// </summary>
-public class SetIBoolOnGiveTag : Tag
+public class SetBoolOnGiveTag : Tag
 {
     /// <summary>
     /// Bool updated when the tag triggers.
@@ -35,7 +36,7 @@ public class SetIBoolOnGiveTag : Tag
             Placement? placement = parent as Placement ?? (parent as Location)?.Placement;
             if (placement is not null)
             {
-                placement.OnVisitStateChanged += OnVisitStateChanged;
+                placement.OnVisited += OnVisited;
             }
         }
     }
@@ -52,7 +53,7 @@ public class SetIBoolOnGiveTag : Tag
             Placement? placement = parent as Placement ?? (parent as Location)?.Placement;
             if (placement is not null)
             {
-                placement.OnVisitStateChanged -= OnVisitStateChanged;
+                placement.OnVisited -= OnVisited;
             }
         }
     }
@@ -62,12 +63,9 @@ public class SetIBoolOnGiveTag : Tag
         Bool.Value = Value;
     }
 
-    private void OnVisitStateChanged(VisitStateChangedEventArgs obj)
+    private void OnVisited(PlacementVisitedEventArgs obj)
     {
-        if (
-            obj.NewFlags.HasFlag(VisitState.ObtainedAnyItem)
-            && !obj.Orig.HasFlag(VisitState.ObtainedAnyItem)
-        )
+        if (obj.HasChangedFlags(VisitState.ObtainedAnyItem))
         {
             Bool.Value = Value;
         }

@@ -147,7 +147,7 @@ public abstract class Placement(string name) : TaggableObject
     /// </summary>
     public void AddVisitFlag(VisitState flag)
     {
-        InvokeVisitStateChanged(flag);
+        InvokeOnVisited(flag);
         Visited |= flag;
     }
 
@@ -247,22 +247,22 @@ public abstract class Placement(string name) : TaggableObject
     protected abstract void DoUnload();
 
     /// <summary>
-    /// Event invoked by each placement whenever new flags are added to its Visited. Skipped if added flags are a subset of Visited.
+    /// Event invoked by each placement whenever it is visited.
     /// </summary>
-    public static event Action<VisitStateChangedEventArgs>? OnVisitStateChangedGlobal;
+    public static event Action<PlacementVisitedEventArgs>? OnVisitedGlobal;
 
     /// <summary>
-    /// Event invoked by this placement whenever AddVisitFlag is called. Use the NoChange property of the args to detect whether a change will occur.
+    /// Event invoked by this placement whenever it is visited.
     /// </summary>
-    public event Action<VisitStateChangedEventArgs>? OnVisitStateChanged;
+    public event Action<PlacementVisitedEventArgs>? OnVisited;
 
-    private void InvokeVisitStateChanged(VisitState newFlags)
+    private void InvokeOnVisited(VisitState newFlags)
     {
-        VisitStateChangedEventArgs args = new(this, newFlags);
+        PlacementVisitedEventArgs args = new(this, newFlags);
         try
         {
-            OnVisitStateChangedGlobal?.Invoke(args);
-            OnVisitStateChanged?.Invoke(args);
+            OnVisitedGlobal?.Invoke(args);
+            OnVisited?.Invoke(args);
         }
         catch (Exception e)
         {
