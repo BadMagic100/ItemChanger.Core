@@ -73,6 +73,11 @@ public abstract class Cost : IFinderCloneable
     /// </summary>
     public void Pay()
     {
+        if (Paid)
+        {
+            return;
+        }
+
         OnPay();
         if (!Recurring)
         {
