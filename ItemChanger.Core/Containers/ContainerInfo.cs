@@ -132,7 +132,7 @@ public class ContainerInfo
     public void ApplyTo(GameObject obj)
     {
         ContainerInfoComponent component = obj.GetComponent<ContainerInfoComponent>();
-        if (component == null)
+        if (component != null)
         {
             throw new InvalidOperationException(
                 $"Only one {nameof(ContainerInfo)} may be applied to a given GameObject."
