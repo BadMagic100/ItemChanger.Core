@@ -5,7 +5,7 @@ namespace ItemChanger.Tests.Fixtures;
 
 internal class DollarCost : ConsumableIntCost
 {
-    public IWritableValueProvider<int> Source { get; set; } = new BoxedInteger(50);
+    public IWritableValueProvider<int> Source { get; set; } = new BoxedInteger { Value = 50 };
 
     public override string GetCostText() => $"Pay ${GetValueSource().Value}";
 

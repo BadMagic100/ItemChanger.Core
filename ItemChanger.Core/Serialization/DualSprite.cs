@@ -6,26 +6,22 @@ namespace ItemChanger.Serialization;
 /// <summary>
 /// A sprite provider that selects between two sprites based on a test.
 /// </summary>
-public class DualSprite(
-    IValueProvider<bool> test,
-    IValueProvider<Sprite> trueSprite,
-    IValueProvider<Sprite> falseSprite
-) : IValueProvider<Sprite>
+public class DualSprite : IValueProvider<Sprite>
 {
     /// <summary>
     /// Boolean controlling which sprite is used.
     /// </summary>
-    public IValueProvider<bool> Test => test;
+    public required IValueProvider<bool> Test { get; init; }
 
     /// <summary>
     /// Sprite returned when <see cref="Test"/> is true.
     /// </summary>
-    public IValueProvider<Sprite> TrueSprite => trueSprite;
+    public required IValueProvider<Sprite> TrueSprite { get; init; }
 
     /// <summary>
     /// Sprite returned when <see cref="Test"/> is false.
     /// </summary>
-    public IValueProvider<Sprite> FalseSprite => falseSprite;
+    public required IValueProvider<Sprite> FalseSprite { get; init; }
 
     /// <inheritdoc/>
     [JsonIgnore]

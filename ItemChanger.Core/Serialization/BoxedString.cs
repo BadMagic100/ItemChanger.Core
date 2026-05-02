@@ -3,8 +3,8 @@
 /// <summary>
 /// A string provider that represents a constant value
 /// </summary>
-public class BoxedString(string Value) : IWritableValueProvider<string>
+public class BoxedString : IWritableValueProvider<string>
 {
     /// <inheritdoc/>
-    public string Value { get; set; } = Value;
+    public required string Value { get; set; }
 }
