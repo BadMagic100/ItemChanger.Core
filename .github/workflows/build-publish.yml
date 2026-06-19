@@ -23,7 +23,7 @@ jobs:
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           filter: tree:0
