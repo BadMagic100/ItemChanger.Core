@@ -37,15 +37,27 @@ public class DefaultCostTag : Tag
     /// <summary>
     /// Helper function to get the default cost the should be applied to a location when wrapping it into a single-cost placement.
     /// </summary>
-    /// <param name="loc">The location to inspect</param>
-    public static Cost? GetDefaultCost(Location loc)
+    /// <param name="locs">The locations to inspect</param>
+    public static Cost? GetDefaultCost(IEnumerable<Location> locs)
     {
-        List<Cost> costs = [.. loc.GetTags<DefaultCostTag>().Select(c => c.Cost.DeepClone()!)];
+        List<Cost> costs =
+        [
+            .. locs.SelectMany(l => l.GetTags<DefaultCostTag>()).Select(c => c.Cost.DeepClone()!),
+        ];
         return costs.Count switch
         {
             0 => null,
             1 => costs[0],
             _ => new MultiCost(costs),
         };
+    }
+
+    /// <summary>
+    /// Helper function to get the default cost the should be applied to a location when wrapping it into a single-cost placement.
+    /// </summary>
+    /// <param name="locs">The locations to inspect</param>
+    public static Cost? GetDefaultCost(params Location[] locs)
+    {
+        return GetDefaultCost((IEnumerable<Location>)locs);
     }
 }

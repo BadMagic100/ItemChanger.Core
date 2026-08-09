@@ -12,7 +12,7 @@ public interface ISingleCostPlacement
     /// </summary>
     /// <remarks>
     /// Locations that wrap to an implementation of ISingleCostPlacement are expected to
-    /// set the default cost using <see cref="ItemChanger.Tags.DefaultCostTag.GetDefaultCost(Locations.Location)"/>
+    /// set the default cost using <see cref="ItemChanger.Tags.DefaultCostTag.GetDefaultCost(Locations.Location[])"/>
     /// </remarks>
     Cost? Cost { get; set; }
 }

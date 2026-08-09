@@ -123,7 +123,7 @@ public abstract class Location : TaggableObject, IFinderCloneable
     /// </summary>
     /// <remarks>
     /// When wrapping to an implementation of <see cref="ISingleCostPlacement"/>, implementers
-    /// should use <see cref="ItemChanger.Tags.DefaultCostTag.GetDefaultCost(Location)"/> to
+    /// should use <see cref="ItemChanger.Tags.DefaultCostTag.GetDefaultCost(Location[])"/> to
     /// assign the default costs defined in finder.
     /// </remarks>
     public abstract Placement Wrap();
