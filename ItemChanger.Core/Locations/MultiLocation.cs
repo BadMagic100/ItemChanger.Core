@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ItemChanger.Placements;
 using ItemChanger.Serialization;
+using ItemChanger.Tags;
 
 namespace ItemChanger.Locations;
 
@@ -37,6 +39,11 @@ public class MultiLocation<T> : Location
     /// <inheritdoc/>
     public override Placement Wrap()
     {
-        return new MultiPlacement<T>(Name) { Selector = Selector, Locations = Locations };
+        return new MultiPlacement<T>(Name)
+        {
+            Selector = Selector,
+            Locations = Locations,
+            Cost = DefaultCostTag.GetDefaultCost(Locations.Values.Append(this)),
+        };
     }
 }
