@@ -110,6 +110,20 @@ public abstract class Container
     public abstract uint SupportedCapabilities { get; }
 
     /// <summary>
+    /// Retrieves the capabilities that factored into the selection of this container from a
+    /// <see cref="ContainerInfo"/>.
+    /// </summary>
+    /// <param name="containerInfo">The <see cref="ContainerInfo"/> with resolved give info</param>
+    protected static IEnumerable<INeedsContainerCapability> GetRequestedCapabilities(
+        ContainerInfo containerInfo
+    )
+    {
+        return containerInfo
+            .GiveInfo.Placement.GetPlacementAndLocationTags()
+            .OfType<INeedsContainerCapability>();
+    }
+
+    /// <summary>
     /// Produces a new object of this container type.
     /// </summary>
     /// <param name="info">The container info to be attached to the new container instance.</param>
