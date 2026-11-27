@@ -20,18 +20,50 @@ public static class UnityExtensions
     }
 
     /// <summary>
-    /// Finds a nested child by traversing the provided sequence of names.
+    /// Find all nested children by traversing the provided sequence of names.
     /// </summary>
-    public static GameObject FindChild(this GameObject g, IEnumerable<string> steps)
+    public static IEnumerable<GameObject> FindChildren(
+        this GameObject g,
+        IReadOnlyList<string> steps
+    )
     {
-        Transform t = g.transform;
-        foreach (string s in steps)
+        if (steps.Count == 0)
         {
-            t = t.Find(s);
+            return [g];
         }
 
-        return t.gameObject;
+        List<Transform> queue = [g.transform];
+        for (int i = 0; i < steps.Count && queue.Count > 0; i++)
+        {
+            string step = steps[i];
+            List<Transform> newQueue = [];
+            foreach (Transform t in queue)
+            {
+                foreach (Transform child in t)
+                {
+                    if (child.name == step)
+                    {
+                        newQueue.Add(child);
+                    }
+                }
+            }
+            queue = newQueue;
+        }
+
+        return queue.Select(t => t.gameObject);
     }
+
+    /// <summary>
+    /// Finds a nested child by traversing the provided sequence of names. Returns the first full-path match or else null.
+    /// </summary>
+    public static GameObject? FindChildOrNull(this GameObject g, IReadOnlyList<string> steps) =>
+        g.FindChildren(steps).FirstOrDefault();
+
+    /// <summary>
+    /// Finds a nested child by traversing the provided sequence of names.
+    /// </summary>
+    public static GameObject FindChild(this GameObject g, IReadOnlyList<string> steps) =>
+        g.FindChildren(steps).FirstOrDefault() ?? throw new System.NullReferenceException();
 
     /// <summary>
     /// Builds the full hierarchy path for the given transform.
@@ -74,14 +106,40 @@ public static class UnityExtensions
 
     private static readonly List<GameObject> rootGameObjectPool = new(500);
 
-    private static List<GameObject> GetRoots(this Scene s)
+    private static T ProcessRoots<T>(this Scene s, System.Func<IReadOnlyList<GameObject>, T> f)
     {
-        if (s.rootCount > rootGameObjectPool.Count)
+        if (s.rootCount > rootGameObjectPool.Capacity)
         {
             rootGameObjectPool.Capacity = s.rootCount;
         }
         s.GetRootGameObjects(rootGameObjectPool);
-        return rootGameObjectPool;
+        T result = f(rootGameObjectPool);
+        rootGameObjectPool.Clear();
+        return result;
+    }
+
+    /// <summary>
+    /// Find GameObjects in the given scene by their full path.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="path">The full path to the GameObject, with forward slash ('/') separators.</param>
+    /// <returns></returns>
+    public static IEnumerable<GameObject> FindGameObjects(this Scene s, string path)
+    {
+        int index = path.IndexOf('/');
+        if (index == -1)
+        {
+            return s.ProcessRoots(rootObjects => rootObjects.Where(g => g.name == path).ToList());
+        }
+
+        string rootName = path[..index];
+        IReadOnlyList<string> parts = path[(index + 1)..].Split('/');
+        return s.ProcessRoots(rootObjects =>
+            rootObjects
+                .Where(g => g.name == rootName)
+                .SelectMany(g => g.FindChildren(parts))
+                .ToList()
+        );
     }
 
     /// <summary>
@@ -90,72 +148,68 @@ public static class UnityExtensions
     /// <param name="s"></param>
     /// <param name="path">The full path to the GameObject, with forward slash ('/') separators.</param>
     /// <returns></returns>
-    public static GameObject? FindGameObject(this Scene s, string path)
+    public static GameObject? FindGameObject(this Scene s, string path) =>
+        s.FindGameObjects(path).FirstOrDefault();
+
+    private static GameObject? FindChildViaBFS(IEnumerable<Transform> roots, string name)
     {
-        List<GameObject> rootObjects = s.GetRoots();
-        int index = path.IndexOf('/');
-        GameObject? result = null;
-        if (index >= 0)
+        Queue<Transform> queue = new();
+        foreach (Transform t in roots)
         {
-            string rootName = path.Substring(0, index);
-            GameObject? root = rootObjects.FirstOrDefault(g => g.name == rootName);
-            if (root != null)
+            queue.Enqueue(t);
+        }
+
+        while (queue.Count > 0)
+        {
+            Transform t = queue.Dequeue();
+            foreach (Transform u in t)
             {
-                result = root.transform.Find(path.Substring(index + 1)).gameObject;
+                if (u.name == name)
+                {
+                    return u.gameObject;
+                }
+                else
+                {
+                    queue.Enqueue(u);
+                }
             }
         }
-        else
-        {
-            result = rootObjects.FirstOrDefault(g => g.name == path);
-        }
-        rootObjects.Clear();
-        return result;
+        return null;
     }
 
     /// <summary>
     /// Breadth first search through the entire hierarchy. Returns the first GameObject with the given name, or null.
     /// </summary>
-    public static GameObject? FindGameObjectByName(this Scene s, string name)
-    {
-        List<GameObject> rootObjects = s.GetRoots();
-        GameObject? result = null;
-        foreach (GameObject g in rootObjects)
+    public static GameObject? FindGameObjectByName(this Scene s, string name) =>
+        s.ProcessRoots(rootObjects =>
         {
-            if (g.name == name)
-            {
-                result = g;
-                break;
-            }
-        }
-        if (result == null)
-        {
+            List<Transform> queue = [];
             foreach (GameObject g in rootObjects)
             {
-                result = g.FindChildInHierarchy(name);
-                if (result != null)
+                if (g.name == name)
                 {
-                    break;
+                    return g;
                 }
+                queue.Add(g.transform);
             }
-        }
-        rootObjects.Clear();
-        return result;
-    }
+
+            return FindChildViaBFS(queue, name);
+        });
 
     /// <summary>
     /// Returns a list of objects in the scene hierarchy, ordered by depth-first-search.
     /// <br/>The list consists of pairs where the first entry is the object path and the second entry is the object.
     /// </summary>
-    public static List<(string path, GameObject go)> Traverse(this Scene s)
-    {
-        List<GameObject> rootObjects = s.GetRoots();
-        List<(string, GameObject)> results = new();
-        foreach (GameObject g in rootObjects)
+    public static List<(string path, GameObject go)> Traverse(this Scene s) =>
+        s.ProcessRoots(rootObjects =>
         {
-            TraverseInternal(string.Empty, g.transform, results);
-        }
-        return results;
-    }
+            List<(string, GameObject)> results = [];
+            foreach (GameObject g in rootObjects)
+            {
+                TraverseInternal(string.Empty, g.transform, results);
+            }
+            return results;
+        });
 
     private static void TraverseInternal(
         string path,
@@ -174,27 +228,8 @@ public static class UnityExtensions
     /// <summary>
     /// Breadth first search. Returns GameObject with given name, or null if not found. Parent object not included in search.
     /// </summary>
-    public static GameObject? FindChildInHierarchy(this GameObject g, string name)
-    {
-        Queue<Transform> q = new();
-        q.Enqueue(g.transform);
-        while (q.Count > 0)
-        {
-            Transform t = q.Dequeue();
-            foreach (Transform u in t)
-            {
-                if (u.name == name)
-                {
-                    return u.gameObject;
-                }
-                else
-                {
-                    q.Enqueue(u);
-                }
-            }
-        }
-        return null;
-    }
+    public static GameObject? FindChildInHierarchy(this GameObject g, string name) =>
+        FindChildViaBFS([g.transform], name);
 
     /// <summary>
     /// Create a new game object which is a parent to <paramref name="self"/>,
